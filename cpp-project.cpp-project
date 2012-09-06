@@ -1,0 +1,173 @@
+<Project name="cpp-project">
+	<Settings>
+		<Standard>c++11</Standard>
+		<Subsystem>windows</Subsystem>
+		<Warnings>all</Warnings>
+		<WarningsAsErrors>True</WarningsAsErrors>
+		<OptimizationLevel>4</OptimizationLevel>
+		<DebugInfo>False</DebugInfo>
+		<Multithreaded>True</Multithreaded>
+		<OutputFolder>output</OutputFolder>
+		<OutputFileName>{ProjectName}.exe</OutputFileName>
+		<IncludeDirectories>
+			<IncludeDirectory>c:\save\code\</IncludeDirectory>
+		</IncludeDirectories>
+		<Libraries>
+			<Library>comctl32</Library>
+			<Library>comdlg32</Library>
+			<Library>wininet</Library>
+			<Library>gdi32</Library>
+			<Library>ole32</Library>
+			<Library>uuid</Library>
+			<Library>shlwapi</Library>
+		</Libraries>
+	</Settings>
+	<Files>
+		<Folder name="Classes">
+			<Folder name="Windows">
+				<Folder name="MainFrame">
+					<File>MainFrame.h</File>
+					<File>MainFrame.cpp</File>
+				</Folder>
+				<Folder name="ProjectWindow">
+					<File>ProjectWindow.h</File>
+					<File>ProjectWindow.cpp</File>
+					<File>ProjectEvents.h</File>
+				</Folder>
+				<Folder name="DocumentWindow">
+					<File>DocumentWindow.h</File>
+					<File>DocumentWindow.cpp</File>
+					<File>DocumentWindowEvents.h</File>
+				</Folder>
+				<Folder name="OutputWindow">
+					<File>OutputWindow.h</File>
+					<File>OutputWindow.cpp</File>
+					<File>OutputTarget.h</File>
+				</Folder>
+				<Folder name="DocumentView">
+					<File>DocumentView.h</File>
+					<File>DocumentView.cpp</File>
+				</Folder>
+				<Folder name="DocumentColor">
+					<File>DocumentColor.h</File>
+					<File>DocumentColor.cpp</File>
+				</Folder>
+				<Folder name="FindInDocumentWindow">
+					<File>FindInDocumentWindow.h</File>
+					<File>FindInDocumentWindow.cpp</File>
+					<File>FindInDocumentWindow.Test.cpp</File>
+					<File>FindInDocumentEvents.h</File>
+				</Folder>
+			</Folder>
+			<Folder name="Dialogs">
+				<Folder name="NewFileDialog">
+					<File>NewFileDialog.h</File>
+					<File>NewFileDialog.cpp</File>
+				</Folder>
+				<Folder name="NewFolderDialog">
+					<File>NewFolderDialog.h</File>
+					<File>NewFolderDialog.cpp</File>
+				</Folder>
+				<Folder name="NewProjectDialog">
+					<File>NewProjectDialog.h</File>
+					<File>NewProjectDialog.cpp</File>
+				</Folder>
+				<Folder name="NewClassDialog">
+					<File>NewClassDialog.h</File>
+					<File>NewClassDialog.cpp</File>
+				</Folder>
+				<Folder name="ProjectSettingsDialog">
+					<File>ProjectSettingsDialog.h</File>
+					<File>ProjectSettingsDialog.cpp</File>
+				</Folder>
+			</Folder>
+			<Folder name="Project Model">
+				<Folder name="Project">
+					<File>Project.h</File>
+					<File>Project.cpp</File>
+				</Folder>
+				<Folder name="ProjectItem">
+					<File>ProjectItem.h</File>
+					<File>ProjectItem.cpp</File>
+					<File>ProjectItemType.h</File>
+					<File>ProjectItemVisitor.h</File>
+				</Folder>
+				<Folder name="ProjectItemFile">
+					<File>ProjectItemFile.h</File>
+					<File>ProjectItemFile.cpp</File>
+				</Folder>
+				<Folder name="ProjectItemFolder">
+					<File>ProjectItemFolder.h</File>
+					<File>ProjectItemFolder.cpp</File>
+				</Folder>
+			</Folder>
+			<Folder name="Document Model">
+				<Folder name="Document">
+					<File>Document.h</File>
+					<File>Document.cpp</File>
+					<File>DocumentEvents.h</File>
+				</Folder>
+				<Folder name="DocumentAction">
+					<File>DocumentAction.h</File>
+					<File>DocumentAction.cpp</File>
+					<File>DocumentOperations.h</File>
+				</Folder>
+				<Folder name="DocumentPosition">
+					<File>DocumentPosition.h</File>
+					<File>DocumentPosition.cpp</File>
+				</Folder>
+				<Folder name="DocumentSelection">
+					<File>DocumentSelection.h</File>
+					<File>DocumentSelection.cpp</File>
+				</Folder>
+				<Folder name="DocumentUtility">
+					<File>DocumentUtility.h</File>
+					<File>DocumentUtility.cpp</File>
+				</Folder>
+				<Folder name="FileLocation">
+					<File>FileLocation.h</File>
+					<File>FileLocation.cpp</File>
+				</Folder>
+			</Folder>
+			<Folder name="Build Classes">
+				<Folder name="BaseThread">
+					<File>BaseThread.h</File>
+					<File>BaseThread.cpp</File>
+				</Folder>
+				<Folder name="CompileThread">
+					<File>CompileThread.h</File>
+					<File>CompileThread.cpp</File>
+					<File>CompileThreadEvents.h</File>
+				</Folder>
+				<Folder name="BuildThread">
+					<File>BuildThread.h</File>
+					<File>BuildThread.cpp</File>
+				</Folder>
+				<Folder name="FileCompileSettings">
+					<File>FileCompileSettings.h</File>
+					<File>FileCompileSettings.cpp</File>
+				</Folder>
+			</Folder>
+		</Folder>
+		<Folder name="Headers">
+			<File>pch.h</File>
+		</Folder>
+		<Folder name="Resources">
+			<File>resource.h</File>
+			<File>resource.rc</File>
+			<File>manifest.xml</File>
+			<File>Makefile</File>
+			<File>ExampleProject.xml</File>
+			<Folder name="Icons">
+				<File>res\application-large.ico</File>
+				<File>res\application-small.ico</File>
+				<File>res\file.ico</File>
+				<File>res\folder-closed.ico</File>
+				<File>res\folder-open.ico</File>
+			</Folder>
+		</Folder>
+		<File>main.cpp</File>
+		<File>main.Test.cpp</File>
+	</Files>
+</Project>
+
