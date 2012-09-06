@@ -129,7 +129,7 @@ void DocumentWindow::SetProject(Project* project)
 void DocumentWindow::OpenDocument(const std::string& fileName)
 {
 	static const std::set<std::string> supportedExtensions = {
-		"H", "CPP", "INL", "XML", "RC", ""
+		"H", "CPP", "INL", "XML", "RC", "", "HPP", "CPP-PROJECT", "C"
 	};
 	auto extension = FSYS::GetFileExt(fileName);
 	if (supportedExtensions.find(STRING::upper(extension)) == supportedExtensions.end())
