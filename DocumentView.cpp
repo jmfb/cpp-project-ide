@@ -775,6 +775,11 @@ void DocumentView::SetOutputTarget(OutputTarget* outputTarget)
 	this->outputTarget = outputTarget;
 }
 
+unsigned long DocumentView::GetDocumentLineCount()
+{
+	return document->GetLineCount();
+}
+
 void DocumentView::SetDocument(Document* document)
 {
 	static Document nullDocument;

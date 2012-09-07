@@ -56,6 +56,9 @@ public:
 	void SetCursorPosition(unsigned long line, unsigned long column);
 	FindInDocumentEvents* GetFindInDocumentEvents();
 	void SetOutputTarget(OutputTarget* outputTarget);
+	bool IsDocumentOpen();
+	unsigned long GetDocumentLineCount();
+	void SetViewFocus();
 
 private:
 	WIN::CMDITab tabs;

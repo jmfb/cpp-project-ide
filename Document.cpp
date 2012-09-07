@@ -1209,7 +1209,8 @@ void Document::FindTextInDocument(const std::string& text, OutputTarget* outputT
 	if (text.empty())
 		return;
 
-	outputTarget->Append("Find results for '" + text + "' in '" + fileName + "'.\r\n");
+	std::ostringstream out;
+	out << "Find results for '" << text << "' in '" << fileName << "'." << std::endl;
 
 	for (auto index = 0ul; index < lines.size(); ++index)
 	{
@@ -1217,14 +1218,13 @@ void Document::FindTextInDocument(const std::string& text, OutputTarget* outputT
 		auto iter = std::search(line.begin(), line.end(), text.begin(), text.end(), STRING::iequal_char());
 		if (iter != line.end())
 		{
-			std::ostringstream out;
-			out << "0> " << fileName << ":" << (index + 1) << ":" << ((iter - line.begin()) + 1) << ": " << line << "\r\n";
-			outputTarget->Append(out.str());
+			out << "0> " << fileName << ":" << (index + 1) << ":" << ((iter - line.begin()) + 1) << ": " << line << std::endl;
 			++count;
 		}
 	}
 
-	outputTarget->Append(STRING::to_string(count) + " occurrence(s) found.\r\n");
+	out << count << " occurrence(s) found." << std::endl;
+	outputTarget->Append(STRING::replace(out.str(), "\n", "\r\n"));
 }
 
 unsigned long Document::CalculateColumnWidth(const std::string& line)

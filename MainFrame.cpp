@@ -14,11 +14,14 @@
 #include "NewFolderDialog.h"
 #include "NewFileDialog.h"
 #include "NewClassDialog.h"
+#include "GotoLineDialog.h"
+#include "FindInFilesDialog.h"
 #include "ProjectSettingsDialog.h"
 #include "DocumentUtility.h"
 #include "BuildThread.h"
 #include "resource.h"
 #include <cstring>
+#include <future>
 
 const UINT_PTR buildTimer = 1;
 
@@ -194,6 +197,12 @@ void MainFrame::OnCommand(WORD code, WORD id, HWND hwnd)
 		break;
 	case ID_EDIT_FIND:
 		OnEditFind();
+		break;
+	case ID_EDIT_GOTO_LINE:
+		OnEditGotoLine();
+		break;
+	case ID_EDIT_FIND_IN_FILES:
+		OnEditFindInFiles();
 		break;
 
 	default:
@@ -832,6 +841,7 @@ void MainFrame::OnBuildGotoError()
 		{
 			documentWindow.OpenDocument(fileName);
 			documentWindow.SetCursorPosition(fileLocation.GetLine(), fileLocation.GetColumn());
+			documentWindow.SetViewFocus();
 		}
 	}
 }
@@ -839,6 +849,80 @@ void MainFrame::OnBuildGotoError()
 void MainFrame::OnEditFind()
 {
 	findWindow.OnEditFind();
+}
+
+void MainFrame::OnEditGotoLine()
+{
+	if (!documentWindow.IsDocumentOpen())
+		return;
+	GotoLineDialog dlg;
+	dlg.SetLineCount(documentWindow.GetDocumentLineCount());
+	if (dlg.DoModal(GetHWND()) == IDOK)
+	{
+		documentWindow.SetCursorPosition(dlg.GetLine(), 0);
+		documentWindow.SetViewFocus();
+	}
+}
+
+void MainFrame::OnEditFindInFiles()
+{
+	if (!project.IsOpen())
+		return;
+	FindInFilesDialog dlg;
+	if (dlg.DoModal(GetHWND()) == IDOK)
+	{
+		auto findText = dlg.GetFindText();
+
+		class FindVisitor : public ProjectItemVisitor
+		{
+		public:
+			FindVisitor(Project* project, std::string findText)
+				: project(project), findText(findText)
+			{
+			}
+			void VisitFile(ProjectItemFile& file) override
+			{
+				auto relativeFileName = file.GetName();
+				auto fileName = FSYS::FormatPath(FSYS::GetFilePath(project->GetFileName()), relativeFileName);
+				results.emplace_back(std::async(&FindVisitor::FindInFile, fileName, relativeFileName, findText));
+			}
+			void VisitFolder(ProjectItemFolder& folder) override
+			{
+				//nothing
+			}
+
+			static std::string FindInFile(std::string fileName, std::string relativeFileName, std::string findText)
+			{
+				std::ostringstream out;
+				std::ifstream in(fileName.c_str());
+				auto lineNumber = 1ul;
+				for (std::string line; std::getline(in, line); ++lineNumber)
+				{
+					auto iter = std::search(line.begin(), line.end(), findText.begin(), findText.end(), STRING::iequal_char());
+					if (iter != line.end())
+						out << "0> " << relativeFileName << ":" << lineNumber << ":" << ((iter - line.begin()) + 1) << ": " << line << std::endl;
+				}
+				return STRING::replace(out.str(), "\n", "\r\n");
+			}
+
+			void Finish(OutputTarget* outputTarget)
+			{
+				outputTarget->Clear();
+				outputTarget->Append("Find in files results for '" + findText + "'.\r\n");
+				for (auto& result: results)
+					outputTarget->Append(result.get());
+			}
+			
+		private:
+			Project* project = nullptr;
+			std::string findText;
+			std::vector<std::future<std::string>> results;
+		};
+
+		FindVisitor visitor(&project, findText);
+		project.GetRootFolder().Visit(&visitor);
+		visitor.Finish(&outputWindow);
+	}
 }
 
 void MainFrame::OnDocumentWindowSelectionChanged(const std::string& fileName)

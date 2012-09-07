@@ -80,6 +80,14 @@
 					<File>ProjectSettingsDialog.h</File>
 					<File>ProjectSettingsDialog.cpp</File>
 				</Folder>
+				<Folder name="GotoLineDialog">
+					<File>GotoLineDialog.h</File>
+					<File>GotoLineDialog.cpp</File>
+				</Folder>
+				<Folder name="FindInFilesDialog">
+					<File>FindInFilesDialog.h</File>
+					<File>FindInFilesDialog.cpp</File>
+				</Folder>
 			</Folder>
 			<Folder name="Project Model">
 				<Folder name="Project">

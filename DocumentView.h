@@ -67,6 +67,7 @@ public:
 	std::pair<std::string, bool> GetFileNameAtCursor();
 	void SetCursorPosition(unsigned long line, unsigned long column);
 	void SetOutputTarget(OutputTarget* outputTarget);
+	unsigned long GetDocumentLineCount();
 
 	void SetDocument(Document* document);
 
