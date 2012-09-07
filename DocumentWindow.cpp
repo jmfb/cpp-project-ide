@@ -278,4 +278,9 @@ void DocumentWindow::SetViewFocus()
 {
 	view.Post(WM_COMMAND, MAKEWPARAM(ID_SELECT_SET_FOCUS, 0));
 }
-	
+
+std::string DocumentWindow::GetDocumentFileName()
+{
+	return view.GetDocumentFileName();
+}
+

@@ -17,8 +17,10 @@
 #include "GotoLineDialog.h"
 #include "FindInFilesDialog.h"
 #include "ProjectSettingsDialog.h"
+#include "EditOptionsDialog.h"
 #include "DocumentUtility.h"
 #include "BuildThread.h"
+#include "Settings.h"
 #include "resource.h"
 #include <cstring>
 #include <future>
@@ -204,6 +206,9 @@ void MainFrame::OnCommand(WORD code, WORD id, HWND hwnd)
 	case ID_EDIT_FIND_IN_FILES:
 		OnEditFindInFiles();
 		break;
+	case ID_TOOLS_EDIT_OPTIONS:
+		OnToolsEditOptions();
+		break;
 
 	default:
 		if (id >= ID_FIRST_DOCUMENT_COMMAND && id <= ID_LAST_DOCUMENT_COMMAND)
@@ -349,13 +354,8 @@ void MainFrame::OnProjectRenameFile(const std::string& oldFileName, const std::s
 
 void MainFrame::OnEditOpenFile()
 {
-	//TODO: Make this configurable as the installation location of MinGW and the specific flavor
-	//		will be different on different machines.
-	static const std::list<std::string> systemIncludeDirectories = {
-		R"(c:\save\program files\mingw\x86_64-w64-mingw32\include)",
-		R"(c:\save\program files\mingw\lib\gcc\x86_64-w64-mingw32\4.7.0\include)",
-		R"(c:\save\program files\mingw\lib\gcc\x86_64-w64-mingw32\4.7.0\include\c++)"
-	};
+	Settings settings;
+	auto systemIncludeDirectories = settings.GetSystemIncludeDirectories();
 	auto fileNamePair = documentWindow.GetFileNameAtCursor();
 	if (!fileNamePair.first.empty())
 	{
@@ -365,6 +365,7 @@ void MainFrame::OnEditOpenFile()
 			project.GetIncludeDirectories().end());
 		directories.insert(fileNamePair.second ? directories.end() : directories.begin(),
 			FSYS::GetFilePath(project.GetFileName()));
+		directories.push_back(FSYS::GetFilePath(documentWindow.GetDocumentFileName()));
 		for (const auto& directory: directories)
 		{
 			auto fullPath = FSYS::FormatPath(directory, fileNamePair.first);
@@ -912,7 +913,7 @@ void MainFrame::OnEditFindInFiles()
 				for (auto& result: results)
 					outputTarget->Append(result.get());
 			}
-			
+
 		private:
 			Project* project = nullptr;
 			std::string findText;
@@ -923,6 +924,12 @@ void MainFrame::OnEditFindInFiles()
 		project.GetRootFolder().Visit(&visitor);
 		visitor.Finish(&outputWindow);
 	}
+}
+
+void MainFrame::OnToolsEditOptions()
+{
+	EditOptionsDialog dlg;
+	dlg.DoModal(GetHWND());
 }
 
 void MainFrame::OnDocumentWindowSelectionChanged(const std::string& fileName)

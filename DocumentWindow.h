@@ -59,6 +59,7 @@ public:
 	bool IsDocumentOpen();
 	unsigned long GetDocumentLineCount();
 	void SetViewFocus();
+	std::string GetDocumentFileName();
 
 private:
 	WIN::CMDITab tabs;

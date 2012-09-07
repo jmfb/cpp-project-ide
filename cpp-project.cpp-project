@@ -88,6 +88,10 @@
 					<File>FindInFilesDialog.h</File>
 					<File>FindInFilesDialog.cpp</File>
 				</Folder>
+				<Folder name="EditOptionsDialog">
+					<File>EditOptionsDialog.h</File>
+					<File>EditOptionsDialog.cpp</File>
+				</Folder>
 			</Folder>
 			<Folder name="Project Model">
 				<Folder name="Project">
@@ -154,6 +158,12 @@
 				<Folder name="FileCompileSettings">
 					<File>FileCompileSettings.h</File>
 					<File>FileCompileSettings.cpp</File>
+				</Folder>
+			</Folder>
+			<Folder name="Application Classes">
+				<Folder name="Settings">
+					<File>Settings.h</File>
+					<File>Settings.cpp</File>
 				</Folder>
 			</Folder>
 		</Folder>

@@ -70,6 +70,7 @@ public:
 	void OnEditFind();
 	void OnEditGotoLine();
 	void OnEditFindInFiles();
+	void OnToolsEditOptions();
 
 	void OnProjectOpenFile(const std::string& fileName) override;
 	void OnProjectRenameFile(const std::string& oldFileName, const std::string& newFileName) override;

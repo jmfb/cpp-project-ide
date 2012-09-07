@@ -780,6 +780,11 @@ unsigned long DocumentView::GetDocumentLineCount()
 	return document->GetLineCount();
 }
 
+std::string DocumentView::GetDocumentFileName()
+{
+	return document->GetFileName();
+}
+
 void DocumentView::SetDocument(Document* document)
 {
 	static Document nullDocument;
