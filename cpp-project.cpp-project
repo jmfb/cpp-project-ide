@@ -156,8 +156,6 @@
 			<File>resource.h</File>
 			<File>resource.rc</File>
 			<File>manifest.xml</File>
-			<File>Makefile</File>
-			<File>ExampleProject.xml</File>
 			<Folder name="Icons">
 				<File>res\application-large.ico</File>
 				<File>res\application-small.ico</File>
