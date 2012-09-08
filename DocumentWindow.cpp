@@ -157,7 +157,7 @@ void DocumentWindow::OpenDocument(const std::string& fileName)
 
 	tabs.AddItem(FSYS::GetFileName(fileName), 0, documentId);
 	tabs.Select(documentId);
-	view.Post(WM_COMMAND, MAKEWPARAM(ID_SELECT_SET_FOCUS, 0));
+	SetViewFocus();
 }
 
 void DocumentWindow::CloseSelectedDocument()
@@ -264,4 +264,23 @@ void DocumentWindow::SetOutputTarget(OutputTarget* outputTarget)
 	view.SetOutputTarget(outputTarget);
 }
 
+bool DocumentWindow::IsDocumentOpen()
+{
+	return view.IsVisible();
+}
+
+unsigned long DocumentWindow::GetDocumentLineCount()
+{
+	return view.GetDocumentLineCount();
+}
+
+void DocumentWindow::SetViewFocus()
+{
+	view.Post(WM_COMMAND, MAKEWPARAM(ID_SELECT_SET_FOCUS, 0));
+}
+
+std::string DocumentWindow::GetDocumentFileName()
+{
+	return view.GetDocumentFileName();
+}
 
