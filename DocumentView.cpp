@@ -33,6 +33,7 @@ bool DocumentView::OnCreate(CREATESTRUCT* cs)
 	background.Create(DocumentColor::background);
 	currentLine.Create(DocumentColor::currentLineBackground);
 	margin.Create(DocumentColor::marginBackground);
+	bookmarkBrush.Create(DocumentColor::marginBookmark);
 
 	auto dc = ::GetDC(GetHWND());
 	font.Create("Courier New", WIN::CFont::CalcHeight(dc, 10));
@@ -439,6 +440,15 @@ void DocumentView::OnCommand(WORD code, WORD id, HWND hwnd)
 	case ID_EDIT_DELETE:
 		document->PerformDelete();
 		break;
+	case ID_EDIT_TOGGLE_BOOKMARK:
+		OnToggleBookmark();
+		break;
+	case ID_EDIT_NEXT_BOOKMARK:
+		OnNextBookmark();
+		break;
+	case ID_EDIT_PREVIOUS_BOOKMARK:
+		OnPreviousBookmark();
+		break;
 	}
 }
 
@@ -567,7 +577,16 @@ void DocumentView::DrawDocument(HDC dc)
 		::SetTextColor(dc, DocumentColor::marginText);
 		::DrawText(dc, out.str().c_str(), marginLineNumberWidth, &lineRect, DT_LEFT|DT_SINGLELINE|DT_NOPREFIX);
 
-		//TODO: draw bookmark indicator if this line is bookmarked
+		if (document->IsLineBookmarked(index))
+		{
+			const auto bookmarkBorder = 3;
+			auto bookmarkRect = lineRect;
+			bookmarkRect.left += marginWidth - bookmarkWidth + bookmarkBorder;
+			bookmarkRect.right = bookmarkRect.left + bookmarkWidth - 2 * bookmarkBorder;
+			bookmarkRect.top += bookmarkBorder;
+			bookmarkRect.bottom -= bookmarkBorder;
+			::FillRect(dc, &bookmarkRect, bookmarkBrush);
+		}
 
 		lineRect.left += marginWidth;
 		auto isCurrentLine = selection.GetEndLine() == index;
@@ -783,6 +802,21 @@ unsigned long DocumentView::GetDocumentLineCount()
 std::string DocumentView::GetDocumentFileName()
 {
 	return document->GetFileName();
+}
+
+void DocumentView::OnToggleBookmark()
+{
+	document->ToggleBookmark();
+}
+
+void DocumentView::OnNextBookmark()
+{
+	document->NextBookmark();
+}
+
+void DocumentView::OnPreviousBookmark()
+{
+	document->PreviousBookmark();
 }
 
 void DocumentView::SetDocument(Document* document)

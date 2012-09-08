@@ -81,6 +81,12 @@ public:
 	void SelectStartOfFile(bool extend, bool isVertical);
 	void SelectEndOfFile(bool extend, bool isVertical);
 
+	//bookmark functions
+	void ToggleBookmark();
+	void NextBookmark();
+	void PreviousBookmark();
+	bool IsLineBookmarked(unsigned long index) const;
+	
 	void FindTextInDocument(const std::string& text, OutputTarget* outputTarget);
 
 private:
@@ -100,6 +106,7 @@ private:
 	std::vector<std::string> lines;
 	std::stack<DocumentAction> undoBuffer;
 	std::stack<DocumentAction> redoBuffer;
+	std::set<unsigned long> bookmarks;
 	DocumentSelection selection;
 	DocumentEvents* events = nullptr;
 };

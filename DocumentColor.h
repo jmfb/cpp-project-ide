@@ -21,7 +21,7 @@ public:
 
 		marginBackground = RGB(64, 64, 64),
 		marginText = RGB(128, 128, 128),
-		marginBookmark = RGB(0, 0, 255),
+		marginBookmark = RGB(0, 128, 255),
 
 		selectionBackground = RGB(0, 255, 255),
 		selectionText = RGB(0, 0, 0),
