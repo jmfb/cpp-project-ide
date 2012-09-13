@@ -94,6 +94,10 @@
 #define IDI_FOLDER_CLOSED 103
 #define IDI_FOLDER_OPEN 104
 #define IDI_FILE 105
+#define IDI_TEST_PENDING 106
+#define IDI_TEST_RUNNING 107
+#define IDI_TEST_SUCCESS 108
+#define IDI_TEST_FAILED 109
 
 //Accelerator tables
 #define IDA_MAINFRAME 201
@@ -137,7 +141,7 @@
 #define VERSION_MAJOR 1
 #define VERSION_MINOR 0
 #define VERSION_REVISION 0
-#define VERSION_BUILD 20120903
+#define VERSION_BUILD 20120913
 #define MAKE_VERSION_NUMBER_STRING_EX(major,minor,revision,build) #major "." #minor "." #revision "." #build
 #define MAKE_VERSION_NUMBER_STRING(major,minor,revision,build) MAKE_VERSION_NUMBER_STRING_EX(major,minor,revision,build)
 #define VERSION_NUMBER VERSION_MAJOR,VERSION_MINOR,VERSION_REVISION,VERSION_BUILD

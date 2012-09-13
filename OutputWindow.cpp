@@ -13,6 +13,8 @@
 #include "resource.h"
 
 const auto backgroundColor = RGB(255, 255, 255);
+const auto findWindowHeight = 20;
+const auto findWindowPadding = 4;
 
 OutputWindow::OutputWindow()
 {
@@ -25,10 +27,18 @@ OutputWindow::~OutputWindow()
 void OutputWindow::SetupClass(WNDCLASSEX& cls)
 {
 	cls.lpszClassName = "OutputWindow";
+	cls.hbrBackground = ::GetSysColorBrush(COLOR_3DFACE);
 }
 
 bool OutputWindow::OnCreate(CREATESTRUCT* cs)
 {
+	findWindow.Create(
+		GetHWND(),
+		nullptr,
+		nullptr,
+		WS_CHILD|WS_VISIBLE|WS_CLIPSIBLINGS|WS_CLIPCHILDREN,
+		WS_EX_CONTROLPARENT);
+	
 	output.Create(
 		GetHWND(),
 		1001,
@@ -51,7 +61,15 @@ bool OutputWindow::OnCreate(CREATESTRUCT* cs)
 
 void OutputWindow::OnSize(unsigned long flag, unsigned short w, unsigned short h)
 {
-	output.Move(GetClientRect());
+	auto client = GetClientRect();
+
+	auto findRect = client;
+	findRect.bottom = findRect.top + findWindowHeight;
+	findWindow.Move(findRect);
+
+	auto outputRect = client;
+	outputRect.top = findRect.bottom + findWindowPadding;
+	output.Move(outputRect);
 }
 
 HBRUSH OutputWindow::OnCtlColorStatic(HWND control, HDC dc)
@@ -103,4 +121,10 @@ FileLocation OutputWindow::GetSelectedFileLocation()
 	auto selectedText = output.GetLine(selectedLine);
 	return { selectedText };
 }
+
+FindInDocumentWindow& OutputWindow::GetFindInDocumentWindow()
+{
+	return findWindow;
+}
+
 

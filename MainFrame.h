@@ -12,20 +12,26 @@
 #pragma once
 #include "ProjectWindow.h"
 #include "DocumentWindow.h"
-#include "OutputWindow.h"
-#include "FindInDocumentWindow.h"
 #include "Project.h"
 #include "ProjectEvents.h"
 #include "DocumentWindowEvents.h"
 #include "CompileThreadEvents.h"
 #include "BuildThread.h"
+#include "ToolWindow.h"
+#include "FileLocation.h"
+#include "TopLevelEvents.h"
 #include <atomic>
+
+class OutputWindow;
+class FindInDocumentWindow;
+class TestResultsWindow;
 
 class MainFrame :
 	public WIN::CWindowImpl<MainFrame>,
 	public ProjectEvents,
 	public DocumentWindowEvents,
-	public CompileThreadEvents
+	public CompileThreadEvents,
+	public TopLevelEvents
 {
 public:
 	MainFrame();
@@ -67,6 +73,7 @@ public:
 	void OnFileProjectSettings();
 	void OnBuildExecuteUnitTest();
 	void OnBuildGotoError();
+	void GotoFileLocation(const FileLocation& fileLocation) override;
 	void OnEditFind();
 	void OnEditGotoLine();
 	void OnEditFindInFiles();
@@ -89,8 +96,10 @@ private:
 	WIN::CSplitter findSplitter;
 	ProjectWindow projectWindow;
 	DocumentWindow documentWindow;
-	OutputWindow outputWindow;
-	FindInDocumentWindow findWindow;
+	OutputWindow* outputWindow = nullptr;
+	FindInDocumentWindow* findWindow = nullptr;
+	TestResultsWindow* testResultsWindow = nullptr;
+	ToolWindow toolWindow;
 	Project project;
 	BuildThreadPtr buildThread;
 	std::atomic<bool> stoppingBuild;

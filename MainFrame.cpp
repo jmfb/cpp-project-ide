@@ -19,7 +19,11 @@
 #include "ProjectSettingsDialog.h"
 #include "EditOptionsDialog.h"
 #include "DocumentUtility.h"
+#include "OutputWindow.h"
+#include "FindInDocumentWindow.h"
+#include "TestResultsWindow.h"
 #include "BuildThread.h"
+#include "Process.h"
 #include "Settings.h"
 #include "resource.h"
 #include <cstring>
@@ -55,13 +59,6 @@ bool MainFrame::OnCreate(CREATESTRUCT* cs)
 		-1,
 		WIN::SPLIT_BOTH,
 		true);
-	findSplitter.Create(
-		documentSplitter,
-		WIN::RECT_DEFAULT,
-		false,
-		-1,
-		WIN::SPLIT_BOTH,
-		false);
 
 	projectWindow.Create(
 		projectSplitter,
@@ -74,14 +71,8 @@ bool MainFrame::OnCreate(CREATESTRUCT* cs)
 		nullptr,
 		nullptr,
 		WS_CHILD|WS_VISIBLE|WS_CLIPSIBLINGS|WS_CLIPCHILDREN);
-	findWindow.Create(
-		findSplitter,
-		nullptr,
-		nullptr,
-		WS_CHILD|WS_VISIBLE|WS_CLIPSIBLINGS|WS_CLIPCHILDREN,
-		WS_EX_CONTROLPARENT);
-	outputWindow.Create(
-		findSplitter,
+	toolWindow.Create(
+		documentSplitter,
 		nullptr,
 		nullptr,
 		WS_CHILD|WS_VISIBLE|WS_CLIPSIBLINGS|WS_CLIPCHILDREN,
@@ -89,17 +80,20 @@ bool MainFrame::OnCreate(CREATESTRUCT* cs)
 
 	projectSplitter.SetPanes(projectWindow, documentSplitter);
 	projectSplitter.SetPos(250);
-	documentSplitter.SetPanes(documentWindow, findSplitter);
+	documentSplitter.SetPanes(documentWindow, toolWindow);
 	documentSplitter.SetPos(200);
-	findSplitter.SetPanes(findWindow, outputWindow);
-	findSplitter.SetPos(12);
+
+	outputWindow = &toolWindow.GetOutputWindow();
+	findWindow = &toolWindow.GetFindInDocumentWindow();
+	testResultsWindow = &toolWindow.GetTestResultsWindow();
 
 	projectWindow.SetEvents(this);
 	documentWindow.SetEvents(this);
 	documentWindow.SetProject(&project);
-	findWindow.SetEvents(documentWindow.GetFindInDocumentEvents());
-	documentWindow.SetOutputTarget(&outputWindow);
-	outputWindow.Append("Ready\r\n");
+	findWindow->SetEvents(documentWindow.GetFindInDocumentEvents());
+	testResultsWindow->SetTopLevelEvents(this);
+	documentWindow.SetOutputTarget(outputWindow);
+	outputWindow->Append("Ready\r\n");
 
 	return true;
 }
@@ -592,7 +586,7 @@ void MainFrame::OnBuildCompile()
 	documentWindow.SaveAllDirtyDocuments();
 
 	//Clear the output window
-	outputWindow.Clear();
+	outputWindow->Clear();
 
 	stoppingBuild = false;
 	buildThread.reset(new BuildThread());
@@ -617,7 +611,8 @@ void MainFrame::OnBuildBuild()
 	documentWindow.SaveAllDirtyDocuments();
 
 	//Clear the output window
-	outputWindow.Clear();
+	outputWindow->Clear();
+	toolWindow.ShowOutputWindow();
 
 	stoppingBuild = false;
 	buildThread.reset(new BuildThread());
@@ -798,43 +793,29 @@ void MainFrame::OnBuildExecuteUnitTest()
 		return;
 	}
 
-	STARTUPINFO startupInfo = {0};
-	std::memset(&startupInfo, 0, sizeof(startupInfo));
-	startupInfo.cb = sizeof(startupInfo);
+	toolWindow.ShowTestResultsWindow();
 
-	PROCESS_INFORMATION processInfo = {0};
-	std::memset(&processInfo, 0, sizeof(processInfo));
-
-	//We need to make a copy of the string for the command line (non-const)
-	STRING::CStringPtr commandCopy(new char[targetFile.size() + 1]);
-	std::strcpy(commandCopy.Get(), targetFile.c_str());
-
-	//Create the process (do not show the associated console)
-	auto result = ::CreateProcess(
-		nullptr,
-		commandCopy.Get(),
-		nullptr,
-		nullptr,
-		FALSE,
-		CREATE_NEW_PROCESS_GROUP,
-		nullptr,
-		FSYS::GetFilePath(targetFile).c_str(),
-		&startupInfo,
-		&processInfo);
-	if (!result)
+	try
 	{
-		MsgBox("Failed to create the process.", "Could not execute.", MB_OK|MB_ICONEXCLAMATION);
-		return;
+		Process process;
+		process.Start(targetFile + " PrintTests", FSYS::GetFilePath(targetFile));
+		process.WaitForExit(500);
+		auto testList = process.ReadOutputPipe();
+		testResultsWindow->RunTests(testList, targetFile);
 	}
-
-	//Attach resultant process and thread handles to scoped containers.
-	WIN::CHandle processThread(processInfo.hThread);
-	WIN::CHandle process(processInfo.hProcess);
+	catch (const ERR::CError& error)
+	{
+		MsgBox(error.Format(), "Error", MB_OK|MB_ICONERROR);
+	}
 }
 
 void MainFrame::OnBuildGotoError()
 {
-	auto fileLocation = outputWindow.GetSelectedFileLocation();
+	GotoFileLocation(outputWindow->GetSelectedFileLocation());
+}
+
+void MainFrame::GotoFileLocation(const FileLocation& fileLocation)
+{
 	if (fileLocation.IsValid())
 	{
 		auto fileName = FSYS::FormatPath(FSYS::GetFilePath(project.GetFileName()), fileLocation.GetFileName());
@@ -849,7 +830,8 @@ void MainFrame::OnBuildGotoError()
 
 void MainFrame::OnEditFind()
 {
-	findWindow.OnEditFind();
+	toolWindow.ShowOutputWindow();
+	findWindow->OnEditFind();
 }
 
 void MainFrame::OnEditGotoLine()
@@ -922,7 +904,7 @@ void MainFrame::OnEditFindInFiles()
 
 		FindVisitor visitor(&project, findText);
 		project.GetRootFolder().Visit(&visitor);
-		visitor.Finish(&outputWindow);
+		visitor.Finish(outputWindow);
 	}
 }
 
@@ -944,7 +926,7 @@ bool MainFrame::IsStopping() const
 
 void MainFrame::ProcessMessage(unsigned long id, const std::string& message)
 {
-	outputWindow.ProcessBuildMessage(id, message);
+	outputWindow->ProcessBuildMessage(id, message);
 }
 
 bool MainFrame::CloseProject()

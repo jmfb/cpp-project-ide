@@ -145,6 +145,7 @@ void DocumentWindow::OpenDocument(const std::string& fileName)
 		if (item.second.GetFileName() == fileName)
 		{
 			tabs.Select(item.first);
+			SetViewFocus();
 			return;
 		}
 	}

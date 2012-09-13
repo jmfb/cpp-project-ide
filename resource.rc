@@ -16,6 +16,10 @@ IDI_APPLICATION_SMALL ICON "./res/application-small.ico"
 IDI_FOLDER_CLOSED ICON "./res/folder-closed.ico"
 IDI_FOLDER_OPEN ICON "./res/folder-open.ico"
 IDI_FILE ICON "./res/file.ico"
+IDI_TEST_PENDING ICON "./res/test-pending.ico"
+IDI_TEST_RUNNING ICON "./res/test-running.ico"
+IDI_TEST_SUCCESS ICON "./res/test-success.ico"
+IDI_TEST_FAILED ICON "./res/test-failed.ico"
 
 IDM_MAINFRAME MENU
 BEGIN

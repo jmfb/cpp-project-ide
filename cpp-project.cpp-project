@@ -28,6 +28,7 @@
 				<Folder name="MainFrame">
 					<File>MainFrame.h</File>
 					<File>MainFrame.cpp</File>
+					<File>TopLevelEvents.h</File>
 				</Folder>
 				<Folder name="ProjectWindow">
 					<File>ProjectWindow.h</File>
@@ -57,6 +58,15 @@
 					<File>FindInDocumentWindow.cpp</File>
 					<File>FindInDocumentWindow.Test.cpp</File>
 					<File>FindInDocumentEvents.h</File>
+				</Folder>
+				<Folder name="ToolWindow">
+					<File>ToolWindow.h</File>
+					<File>ToolWindow.cpp</File>
+				</Folder>
+				<Folder name="TestResultsWindow">
+					<File>TestResultsWindow.h</File>
+					<File>TestResultsWindow.cpp</File>
+					<File>TestResultsTarget.h</File>
 				</Folder>
 			</Folder>
 			<Folder name="Dialogs">
@@ -159,11 +169,26 @@
 					<File>FileCompileSettings.h</File>
 					<File>FileCompileSettings.cpp</File>
 				</Folder>
+				<Folder name="TestManagerThread">
+					<File>TestManagerThread.h</File>
+					<File>TestManagerThread.cpp</File>
+				</Folder>
+				<Folder name="UnitTestThread">
+					<File>UnitTestThread.h</File>
+					<File>UnitTestThread.cpp</File>
+				</Folder>
 			</Folder>
 			<Folder name="Application Classes">
 				<Folder name="Settings">
 					<File>Settings.h</File>
 					<File>Settings.cpp</File>
+				</Folder>
+			</Folder>
+			<Folder name="Utility Classes">
+				<Folder name="Process">
+					<File>Process.h</File>
+					<File>Process.cpp</File>
+					<File>Process.Test.cpp</File>
 				</Folder>
 			</Folder>
 		</Folder>
@@ -182,6 +207,10 @@
 				<File>res\file.ico</File>
 				<File>res\folder-closed.ico</File>
 				<File>res\folder-open.ico</File>
+				<File>res\test-failed.ico</File>
+				<File>res\test-pending.ico</File>
+				<File>res\test-running.ico</File>
+				<File>res\test-success.ico</File>
 			</Folder>
 		</Folder>
 		<File>main.cpp</File>
