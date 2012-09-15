@@ -7,6 +7,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 #include "pch.h"
 #include "Process.h"
+#include <thread>
 
 void Process::Shell(const std::string& command, const std::string& workingDirectory, unsigned long createFlags, bool waitForExit)
 {
@@ -58,6 +59,9 @@ void Process::Start(const std::string& command, const std::string& workingDirect
 	WIN::CreatePipe(inputPipes[0], inputPipes[1], &securityAttributes);
 	WIN::CreatePipe(outputPipes[0], outputPipes[1], &securityAttributes);
 	WIN::CreatePipe(errorPipes[0], errorPipes[1], &securityAttributes);
+	::SetHandleInformation(inputPipes[1].Get(), HANDLE_FLAG_INHERIT, 0);
+	::SetHandleInformation(outputPipes[0].Get(), HANDLE_FLAG_INHERIT, 0);
+	::SetHandleInformation(errorPipes[0].Get(), HANDLE_FLAG_INHERIT, 0);
 
 	//Create the startup info that contains the pipes to use (these will be the write pipes
 	//used by the newly created process for output and error and the read pipe for input).
@@ -114,6 +118,17 @@ void Process::WaitForExit(unsigned long timeout)
 		Terminate();
 }
 
+void Process::SoftWaitForExit()
+{
+	while (!IsDone())
+	{
+		ReadSomeError();
+		ReadSomeOutput();
+		std::this_thread::yield();
+	}
+	Close();
+}
+
 void Process::Terminate()
 {
 	constexpr auto trace = __PRETTY_FUNCTION__;
@@ -132,11 +147,23 @@ void Process::Close()
 
 std::string Process::ReadOutputPipe()
 {
-	return outputPipes[0].ReadString();
+	ReadSomeOutput();
+	return outputData.str();
 }
 
 std::string Process::ReadErrorPipe()
 {
-	return errorPipes[0].ReadString();
+	ReadSomeError();
+	return errorData.str();
+}
+
+void Process::ReadSomeOutput()
+{
+	outputData << outputPipes[0].ReadString();
+}
+
+void Process::ReadSomeError()
+{
+	errorData << errorPipes[0].ReadString();
 }
 

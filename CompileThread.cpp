@@ -94,6 +94,8 @@ void CompileThread::Run()
 			}
 			else
 			{
+				process.ReadSomeOutput();
+				process.ReadSomeError();
 				std::this_thread::yield();
 			}
 		}

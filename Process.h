@@ -23,14 +23,19 @@ public:
 	void Start(const std::string& command, const std::string& workingDirectory);
 	bool IsDone();
 	void WaitForExit(unsigned long timeout);
+	void SoftWaitForExit();
 	void Terminate();
 	void Close();
 	std::string ReadOutputPipe();
 	std::string ReadErrorPipe();
+	void ReadSomeOutput();
+	void ReadSomeError();
 
 private:
 	friend class ProcessTest;
 	WIN::CPipe inputPipes[2], outputPipes[2], errorPipes[2];
+	std::ostringstream outputData;
+	std::ostringstream errorData;
 	PROCESS_INFORMATION processInfo = {0};
 	WIN::CHandle processThread;
 	WIN::CHandle process;

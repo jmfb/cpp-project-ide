@@ -34,9 +34,7 @@ void UnitTestThread::Run()
 
 		Process process;
 		process.Start(command, workingDirectory);
-		while (!process.IsDone())
-			std::this_thread::yield();
-		process.Close();
+		process.SoftWaitForExit();
 
 		auto result = process.ReadOutputPipe();
 		if (result.find("Success") == 0)

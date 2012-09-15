@@ -799,7 +799,7 @@ void MainFrame::OnBuildExecuteUnitTest()
 	{
 		Process process;
 		process.Start(targetFile + " PrintTests", FSYS::GetFilePath(targetFile));
-		process.WaitForExit(500);
+		process.SoftWaitForExit();
 		auto testList = process.ReadOutputPipe();
 		testResultsWindow->RunTests(testList, targetFile);
 	}
