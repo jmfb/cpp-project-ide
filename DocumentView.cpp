@@ -516,7 +516,7 @@ void DocumentView::UpdateCaret()
 SIZE DocumentView::GetClientSize()
 {
 	auto client = GetClientRect();
-	return { (client.right - client.left - marginWidth) / charSize.cx + 1, (client.bottom - client.top) / charSize.cy + 1 };
+	return { (client.right - client.left - marginWidth) / charSize.cx, (client.bottom - client.top) / charSize.cy };
 }
 
 RECT DocumentView::GetViewRect()
@@ -537,7 +537,7 @@ void DocumentView::DrawDocument(HDC dc)
 	auto view = GetViewRect();
 	unsigned long firstVisibleLine = view.top;
 	unsigned long lastVisibleLine = MATH::Min(
-		static_cast<unsigned long>(view.bottom),
+		static_cast<unsigned long>(view.bottom + 1),
 		document->GetLineCount());
 
 	auto selection = document->GetSelection();
@@ -624,25 +624,34 @@ void DocumentView::EnsureCaretVisible()
 	auto scrollPosition = GetScrollPos();
 	auto view = GetViewRect();
 	auto caret = document->GetSelection().GetEnd().ToPoint();
+	auto size = document->GetSize();
+	auto viewHeight = view.bottom - view.top;
+	auto maxScrollY = size.cy - viewHeight;
+	auto viewWidth = view.right - view.left;
+	auto maxScrollX = size.cx - viewWidth;
 
 	if (!::PtInRect(&view, caret))
 	{
 		if (caret.x < view.left)
 		{
 			scrollPosition.x -= (view.left - caret.x);
+			scrollPosition.x -= MATH::Min(scrollPosition.x, viewWidth / 2);
 		}
 		else if (caret.x >= view.right)
 		{
 			scrollPosition.x += (caret.x - view.right + 1);
+			scrollPosition.x = MATH::Min(scrollPosition.x + (viewWidth / 2), maxScrollX);
 		}
 
 		if (caret.y < view.top)
 		{
 			scrollPosition.y -= (view.top - caret.y);
+			scrollPosition.y -= MATH::Min(scrollPosition.y, viewHeight / 2);
 		}
 		else if (caret.y >= view.bottom)
 		{
 			scrollPosition.y += (caret.y - view.bottom + 1);
+			scrollPosition.y = MATH::Min(scrollPosition.y + (viewHeight / 2), maxScrollY);
 		}
 
 		SetScrollPos(scrollPosition);

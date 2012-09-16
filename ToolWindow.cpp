@@ -52,7 +52,7 @@ void ToolWindow::OnSize(unsigned long flag, unsigned short w, unsigned short h)
 	testResultsWindow.Move(viewRect);
 }
 
-void ToolWindow::OnMDITabUnselectItem(int id, unsigned long item)
+unsigned long ToolWindow::OnMDITabUnselectItem(int id, unsigned long item)
 {
 	switch(item)
 	{
@@ -63,6 +63,7 @@ void ToolWindow::OnMDITabUnselectItem(int id, unsigned long item)
 		testResultsWindow.Show(SW_HIDE);
 		break;
 	}
+	return 0;
 }
 
 void ToolWindow::OnMDITabSelectItem(int id, unsigned long item)

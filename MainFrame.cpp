@@ -587,6 +587,7 @@ void MainFrame::OnBuildCompile()
 
 	//Clear the output window
 	outputWindow->Clear();
+	toolWindow.ShowOutputWindow();
 
 	stoppingBuild = false;
 	buildThread.reset(new BuildThread());

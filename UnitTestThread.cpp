@@ -8,6 +8,11 @@
 #include "UnitTestThread.h"
 #include "Process.h"
 
+UnitTestThread::UnitTestThread()
+	: done(false)
+{
+}
+
 void UnitTestThread::SetTestData(
 	unsigned long testIndex,
 	const std::string& command,

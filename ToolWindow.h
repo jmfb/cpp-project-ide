@@ -26,7 +26,7 @@ public:
 	bool OnCreate(CREATESTRUCT* cs) override;
 	void OnSize(unsigned long flag, unsigned short w, unsigned short h) override;
 
-	void OnMDITabUnselectItem(int id, unsigned long item) override;
+	unsigned long OnMDITabUnselectItem(int id, unsigned long item) override;
 	void OnMDITabSelectItem(int id, unsigned long item) override;
 	void OnMDITabNoSelection(int id) override;
 	void OnMDITabCloseSelection(int id, unsigned long item) override;
@@ -37,7 +37,7 @@ public:
 	FindInDocumentWindow& GetFindInDocumentWindow();
 	OutputWindow& GetOutputWindow();
 	TestResultsWindow& GetTestResultsWindow();
-	
+
 private:
 	WIN::CMDITab tabs;
 	OutputWindow outputWindow;

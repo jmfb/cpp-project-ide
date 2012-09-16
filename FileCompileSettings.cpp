@@ -139,7 +139,17 @@ std::string FileCompileSettings::PrepareForCompile(const std::string& suffix) co
 	auto outputDirectory = FSYS::GetFilePath(outputFile);
 	//Make sure the output directory does exist
 	if (!FSYS::PathExists(outputDirectory))
-		FSYS::CreatePath(outputDirectory);
+	{
+		try
+		{
+			FSYS::CreatePath(outputDirectory);
+		}
+		catch (...)
+		{
+			if (!FSYS::PathExists(outputDirectory))
+				throw;
+		}
+	}
 	//Delete any previous output file that may have existed
 	if (FSYS::FileExists(outputFile))
 		::DeleteFile(outputFile.c_str());

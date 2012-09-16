@@ -15,7 +15,7 @@
 class UnitTestThread : public BaseThread
 {
 public:
-	UnitTestThread() = default;
+	UnitTestThread();
 	UnitTestThread(const UnitTestThread& rhs) = delete;
 	~UnitTestThread() = default;
 
@@ -27,9 +27,9 @@ public:
 		const std::string& workingDirectory,
 		TestResultsTarget* target);
 	bool IsDone();
-	
+
 	void Run() final;
-	
+
 private:
 	std::string command;
 	std::string workingDirectory;

@@ -78,9 +78,13 @@ void DocumentWindow::OnSetFocus(HWND prev)
 		view.SetFocus();
 }
 
-void DocumentWindow::OnMDITabUnselectItem(int id, unsigned long item)
+unsigned long DocumentWindow::OnMDITabUnselectItem(int id, unsigned long item)
 {
 	scrollPositions[item] = view.GetScrollPos();
+
+	if (documentOrder.size() > 1)
+		return documentOrder[documentOrder.size() - 2];
+	return 0;
 }
 
 void DocumentWindow::OnMDITabSelectItem(int id, unsigned long item)
@@ -91,6 +95,11 @@ void DocumentWindow::OnMDITabSelectItem(int id, unsigned long item)
 	view.SetFocus();
 	if (events)
 		events->OnDocumentWindowSelectionChanged(documents[item].GetFileName());
+
+	auto iter = std::find(documentOrder.begin(), documentOrder.end(), item);
+	if (iter != documentOrder.end())
+		documentOrder.erase(iter);
+	documentOrder.push_back(item);
 }
 
 void DocumentWindow::OnMDITabNoSelection(int id)
@@ -114,6 +123,10 @@ void DocumentWindow::OnMDITabCloseSelection(int id, unsigned long item)
 	tabs.RemoveItem(item);
 	documents.erase(item);
 	scrollPositions.erase(item);
+
+	auto iter = std::find(documentOrder.begin(), documentOrder.end(), item);
+	if (iter != documentOrder.end())
+		documentOrder.erase(iter);
 }
 
 void DocumentWindow::SetEvents(DocumentWindowEvents* value)
