@@ -472,6 +472,10 @@ void DocumentView::UpdateScrollStatus()
 	UpdateScrollBarStatus(SB_HORZ, size.cx, documentSize.cx);
 	size = GetClientSize();
 	UpdateScrollBarStatus(SB_VERT, size.cy, documentSize.cy);
+	size = GetClientSize();
+	UpdateScrollBarStatus(SB_HORZ, size.cx, documentSize.cx);
+	size = GetClientSize();
+	UpdateScrollBarStatus(SB_VERT, size.cy, documentSize.cy);
 	Invalidate();
 	UpdateCaret();
 }

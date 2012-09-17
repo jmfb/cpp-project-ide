@@ -13,7 +13,8 @@ constexpr auto systemIncludeDirectoriesName = "SystemIncludeDirectories";
 constexpr auto systemIncludeDirectoriesDefault =
 	R"(c:\program files\mingw\x86_64-w64-mingw32\include;)"
 	R"(c:\program files\mingw\lib\gcc\x86_64-w64-mingw32\4.7.0\include;)"
-	R"(c:\program files\mingw\lib\gcc\x86_64-w64-mingw32\4.7.0\include\c++)";
+	R"(c:\program files\mingw\lib\gcc\x86_64-w64-mingw32\4.7.0\include\c++;)"
+	R"(c:\program files\mingw\lib\gcc\x86_64-w64-mingw32\4.7.0\include\c++\x86_64-w64-mingw32)";
 
 std::vector<std::string> Settings::GetSystemIncludeDirectories()
 {

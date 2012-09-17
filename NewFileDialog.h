@@ -24,8 +24,10 @@ public:
 	void OnCommand(WORD code, WORD id, HWND hwnd) override;
 
 	const std::string& GetName() const;
+	const std::string& GetDirectory() const;
 
 private:
 	std::string name;
+	std::string directory;
 };
 

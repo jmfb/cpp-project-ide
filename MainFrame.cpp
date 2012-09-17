@@ -363,6 +363,7 @@ void MainFrame::OnEditOpenFile()
 		for (const auto& directory: directories)
 		{
 			auto fullPath = FSYS::FormatPath(directory, fileNamePair.first);
+			fullPath = STRING::replace(fullPath, "/", "\\");
 			if (FSYS::FileExists(fullPath))
 			{
 				documentWindow.OpenDocument(fullPath);
@@ -391,7 +392,15 @@ void MainFrame::OnFileCreateFile()
 	NewFileDialog dlg;
 	if (dlg.DoModal(GetHWND()) == IDOK)
 	{
-		auto fileName = FSYS::FormatPath(FSYS::GetFilePath(project.GetFileName()), dlg.GetName());
+		auto directory = FSYS::GetFilePath(project.GetFileName());
+		if (!dlg.GetDirectory().empty())
+		{
+			directory = FSYS::FormatPath(directory, dlg.GetDirectory());
+			if (!FSYS::PathExists(directory))
+				FSYS::CreatePath(directory);
+		}
+
+		auto fileName = FSYS::FormatPath(directory, dlg.GetName());
 		if (FSYS::FileExists(fileName))
 		{
 			auto result = MsgBox(
@@ -402,7 +411,10 @@ void MainFrame::OnFileCreateFile()
 				return;
 		}
 
-		projectWindow.CreateNewFile(dlg.GetName());
+		auto relativePath = dlg.GetName();
+		if (!dlg.GetDirectory().empty())
+			relativePath = FSYS::FormatPath(dlg.GetDirectory(), relativePath);
+		projectWindow.CreateNewFile(relativePath);
 
 		std::ofstream out(fileName.c_str());
 		out << std::endl;
@@ -905,6 +917,7 @@ void MainFrame::OnEditFindInFiles()
 
 		FindVisitor visitor(&project, findText);
 		project.GetRootFolder().Visit(&visitor);
+		toolWindow.ShowOutputWindow();
 		visitor.Finish(outputWindow);
 	}
 }
