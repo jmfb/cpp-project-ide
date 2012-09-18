@@ -32,14 +32,14 @@ bool TestResultsWindow::OnCreate(CREATESTRUCT* cs)
 	imageList[IDI_TEST_RUNNING];
 	imageList[IDI_TEST_SUCCESS];
 	imageList[IDI_TEST_FAILED];
-	
+
 	labelStatus.Attach(WIN::CWindow::Create(WC_STATIC, GetHWND(), reinterpret_cast<HMENU>(labelStatusId),
 		"", WS_CHILD|WS_VISIBLE|SS_CENTERIMAGE, 0, 0, 0, 1, 1, nullptr));
 	checkFilter.Attach(WIN::CWindow::Create(WC_BUTTON, GetHWND(), reinterpret_cast<HMENU>(checkFilterId),
 		"Only Show Failed Unit Tests", WS_CHILD|WS_VISIBLE|BS_AUTOCHECKBOX, 0, 0, 0, 1, 1, nullptr));
 	labelStatus.SetFont(font.Get());
 	checkFilter.SetFont(font.Get());
-	
+
 	listView.Create(
 		GetHWND(),
 		listViewId,

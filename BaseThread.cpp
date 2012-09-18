@@ -15,7 +15,7 @@ BaseThread::~BaseThread()
 void BaseThread::Start()
 {
 	Stop();
-	Create();	
+	Create();
 }
 
 void BaseThread::Stop()

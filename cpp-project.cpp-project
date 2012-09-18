@@ -212,6 +212,16 @@
 				<File>res\test-running.ico</File>
 				<File>res\test-success.ico</File>
 			</Folder>
+			<Folder name="Screenshots">
+				<File>Screenshots\BuildMenu.png</File>
+				<File>Screenshots\EditMenu.png</File>
+				<File>Screenshots\FileMenu.png</File>
+				<File>Screenshots\MainFrame.png</File>
+				<File>Screenshots\NewClassWizard.png</File>
+				<File>Screenshots\ProjectSettings.png</File>
+				<File>Screenshots\TestResults.png</File>
+				<File>Screenshots\ToolsMenu.png</File>
+			</Folder>
 		</Folder>
 		<File>main.cpp</File>
 		<File>main.Test.cpp</File>
