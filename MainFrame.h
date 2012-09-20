@@ -78,8 +78,9 @@ public:
 	void OnEditGotoLine();
 	void OnEditFindInFiles();
 	void OnToolsEditOptions();
+	void OnEditSwitchDocuments();
 
-	void OnProjectOpenFile(const std::string& fileName) override;
+	void OnProjectOpenFile(const std::string& fileName, bool openInOther) override;
 	void OnProjectRenameFile(const std::string& oldFileName, const std::string& newFileName) override;
 
 	void OnDocumentWindowSelectionChanged(const std::string& fileName) override;
@@ -93,9 +94,10 @@ private:
 	WIN::CStatusBar statusBar;
 	WIN::CSplitter projectSplitter;
 	WIN::CSplitter documentSplitter;
-	WIN::CSplitter findSplitter;
+	WIN::CSplitter verticalSplitter;
 	ProjectWindow projectWindow;
 	DocumentWindow documentWindow;
+	DocumentWindow otherDocumentWindow;
 	OutputWindow* outputWindow = nullptr;
 	FindInDocumentWindow* findWindow = nullptr;
 	TestResultsWindow* testResultsWindow = nullptr;

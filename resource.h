@@ -87,6 +87,7 @@
 #define ID_EDIT_GOTO_LINE 2020
 #define ID_EDIT_FIND_IN_FILES 2021
 #define ID_TOOLS_EDIT_OPTIONS 2022
+#define ID_EDIT_SWITCH_DOCUMENTS 2023
 
 //Icons
 #define IDI_APPLICATION_LARGE 101
@@ -141,7 +142,7 @@
 #define VERSION_MAJOR 1
 #define VERSION_MINOR 0
 #define VERSION_REVISION 0
-#define VERSION_BUILD 20120917
+#define VERSION_BUILD 20120919
 #define MAKE_VERSION_NUMBER_STRING_EX(major,minor,revision,build) #major "." #minor "." #revision "." #build
 #define MAKE_VERSION_NUMBER_STRING(major,minor,revision,build) MAKE_VERSION_NUMBER_STRING_EX(major,minor,revision,build)
 #define VERSION_NUMBER VERSION_MAJOR,VERSION_MINOR,VERSION_REVISION,VERSION_BUILD

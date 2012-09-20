@@ -47,6 +47,7 @@ public:
 	void SetEvents(DocumentWindowEvents* value);
 	void SetProject(Project* project);
 	void OpenDocument(const std::string& fileName);
+	void CloseDocument(const std::string& fileName);
 	void CloseSelectedDocument();
 	void CloseAllDocuments();
 	void CloseAllButThis();

@@ -75,7 +75,12 @@ void DocumentWindow::OnCommand(WORD code, WORD id, HWND hwnd)
 void DocumentWindow::OnSetFocus(HWND prev)
 {
 	if (view.IsWindow() && view.IsVisible())
+	{
 		view.SetFocus();
+		auto documentId = tabs.GetSelectedItem();
+		if (events != nullptr && documentId != std::numeric_limits<decltype(documentId)>::max())
+			events->OnDocumentWindowSelectionChanged(documents[documentId].GetFileName());
+	}
 }
 
 unsigned long DocumentWindow::OnMDITabUnselectItem(int id, unsigned long item)
@@ -172,6 +177,13 @@ void DocumentWindow::OpenDocument(const std::string& fileName)
 	tabs.AddItem(FSYS::GetFileName(fileName), 0, documentId);
 	tabs.Select(documentId);
 	SetViewFocus();
+}
+
+void DocumentWindow::CloseDocument(const std::string& fileName)
+{
+	for (const auto& item: documents)
+		if (item.second.GetFileName() == fileName)
+			OnMDITabCloseSelection(0, item.first);
 }
 
 void DocumentWindow::CloseSelectedDocument()
@@ -291,6 +303,9 @@ unsigned long DocumentWindow::GetDocumentLineCount()
 void DocumentWindow::SetViewFocus()
 {
 	view.Post(WM_COMMAND, MAKEWPARAM(ID_SELECT_SET_FOCUS, 0));
+	auto documentId = tabs.GetSelectedItem();
+	if (events != nullptr && documentId != std::numeric_limits<decltype(documentId)>::max())
+		events->OnDocumentWindowSelectionChanged(documents[documentId].GetFileName());
 }
 
 std::string DocumentWindow::GetDocumentFileName()
