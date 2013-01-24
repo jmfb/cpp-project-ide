@@ -7,6 +7,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 #include "pch.h"
 #include "CompileThread.h"
+#include "Process.h"
 #include <cstring>
 
 CompileThread::CompileThread()
@@ -72,63 +73,15 @@ void CompileThread::Run()
 		else
 			settings.PrepareForCompile("o");
 
-		//Create a security attributes specifying handles will be inherited
-		SECURITY_ATTRIBUTES securityAttributes = {0};
-		securityAttributes.nLength = sizeof(securityAttributes);
-		securityAttributes.lpSecurityDescriptor = nullptr;
-		securityAttributes.bInheritHandle = TRUE;
-
-		//Create read and write pipes for input, output, and error communication channels with process.
-		WIN::CPipe inputPipes[2], outputPipes[2], errorPipes[2];
-		WIN::CreatePipe(inputPipes[0], inputPipes[1], &securityAttributes);
-		WIN::CreatePipe(outputPipes[0], outputPipes[1], &securityAttributes);
-		WIN::CreatePipe(errorPipes[0], errorPipes[1], &securityAttributes);
-
-		//Create the startup info that contains the pipes to use (these will be the write pipes
-		//used by the newly created process for output and error and the read pipe for input).
-		STARTUPINFO startupInfo = {0};
-		std::memset(&startupInfo, 0, sizeof(startupInfo));
-		startupInfo.cb = sizeof(startupInfo);
-		startupInfo.dwFlags = STARTF_USESTDHANDLES;
-		startupInfo.hStdInput = inputPipes[0].Get();
-		startupInfo.hStdOutput = outputPipes[1].Get();
-		startupInfo.hStdError = errorPipes[1].Get();
-
-		//Declare the process information (handles) that will be set from call to create
-		PROCESS_INFORMATION processInfo = {0};
-		std::memset(&processInfo, 0, sizeof(processInfo));
-
-		//We need to make a copy of the string for the command line (non-const)
-		STRING::CStringPtr commandCopy(new char[command.size() + 1]);
-		std::strcpy(commandCopy.Get(), command.c_str());
-
-		//Create the process (do not show the associated console)
-		auto result = ::CreateProcess(
-			nullptr,
-			commandCopy.Get(),
-			nullptr,
-			nullptr,
-			TRUE,
-			CREATE_NO_WINDOW,
-			nullptr,
-			workingDirectory.c_str(),
-			&startupInfo,
-			&processInfo);
-		ERR::CheckWindowsError(!result, trace, "CreateProcess");
-
-		//Attach resultant process and thread handles to scoped containers.
-		WIN::CHandle processThread(processInfo.hThread);
-		WIN::CHandle process(processInfo.hProcess);
+		Process process;
+		process.Start(command, workingDirectory);
 
 		//Wait for the process to exit but periodically check the stopping flag.
 		for (;;)
 		{
-			auto waitResult = ::WaitForSingleObject(processInfo.hProcess, 100);
-			ERR::CheckWindowsError(waitResult == WAIT_FAILED, trace, "WaitForSingleObject");
-			if (waitResult == WAIT_OBJECT_0)
+			if (process.IsDone())
 			{
-				processThread.Release();
-				process.Release();
+				process.Close();
 				break;
 			}
 			else if (events->IsStopping())
@@ -136,21 +89,18 @@ void CompileThread::Run()
 				//The process has not stopped on its own and the user has requested the build
 				//be stopped.  Terminate the process but still wait for it to complete termination
 				//before exiting the loop.
-				result = ::TerminateProcess(processInfo.hProcess, 0);
-				ERR::CheckWindowsError(!result, trace, "TerminateProcess");
-				waitResult = ::WaitForSingleObject(processInfo.hProcess, INFINITE);
-				ERR::CheckWindowsError(waitResult == WAIT_FAILED, trace, "WaitForSingleObject[stopping]");
-				processThread.Release();
-				process.Release();
+				process.Terminate();
 				break;
 			}
 			else
 			{
+				process.ReadSomeOutput();
+				process.ReadSomeError();
 				std::this_thread::yield();
 			}
 		}
 
-		auto errorText = errorPipes[0].ReadString();
+		auto errorText = process.ReadErrorPipe();
 		std::istringstream errorIn(errorText);
 		std::string errorLine;
 		while (std::getline(errorIn, errorLine))

@@ -53,7 +53,7 @@ void ProjectWindow::OnTreeViewDblClk(int id)
 	if (projectItem->GetType() != ProjectItemType::File)
 		return;
 	auto fileName = FSYS::FormatPath(FSYS::GetFilePath(project->GetFileName()), projectItem->GetName());
-	events->OnProjectOpenFile(fileName);
+	events->OnProjectOpenFile(fileName, ::GetKeyState(VK_CONTROL) < 0);
 }
 
 void ProjectWindow::OnTreeViewReturn(int id)
@@ -68,7 +68,7 @@ void ProjectWindow::OnTreeViewReturn(int id)
 	if (projectItem->GetType() != ProjectItemType::File)
 		return;
 	auto fileName = FSYS::FormatPath(FSYS::GetFilePath(project->GetFileName()), projectItem->GetName());
-	events->OnProjectOpenFile(fileName);
+	events->OnProjectOpenFile(fileName, ::GetKeyState(VK_CONTROL) < 0);
 }
 
 void ProjectWindow::OnTreeViewRClick(int id)

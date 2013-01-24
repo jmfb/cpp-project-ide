@@ -20,6 +20,7 @@ void NewFileDialog::OnCommand(WORD code, WORD id, HWND hwnd)
 	{
 	case IDOK:
 		name = STRING::trim(GetDlgItemText(IDC_EDIT_NAME));
+		directory = STRING::trim(GetDlgItemText(IDC_EDIT_DIRECTORY));
 		if (name.empty())
 			MsgBox("Please enter a file name.", "Missing Information", MB_OK|MB_ICONEXCLAMATION);
 		else
@@ -54,5 +55,10 @@ void NewFileDialog::OnCommand(WORD code, WORD id, HWND hwnd)
 const std::string& NewFileDialog::GetName() const
 {
 	return name;
+}
+
+const std::string& NewFileDialog::GetDirectory() const
+{
+	return directory;
 }
 

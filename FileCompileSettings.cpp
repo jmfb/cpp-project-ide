@@ -7,6 +7,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 #include "pch.h"
 #include "FileCompileSettings.h"
+#include "Process.h"
 
 void FileCompileSettings::SetProjectItemFile(Project* project, ProjectItemFile* projectItem)
 {
@@ -41,44 +42,14 @@ bool FileCompileSettings::NeedsToCompile() const
 
 	try
 	{
-		STARTUPINFO startupInfo = {0};
-		std::memset(&startupInfo, 0, sizeof(startupInfo));
-		startupInfo.cb = sizeof(startupInfo);
-
-		PROCESS_INFORMATION processInfo = {0};
-		std::memset(&processInfo, 0, sizeof(processInfo));
-
-		//We need to make a copy of the string for the command line (non-const)
 		std::ostringstream out;
 		out << "g++ -MM -E -std=" << project->GetStandard()
 			<< " -c " << STRING::replace(projectItem->GetName(), "\\", "/");
 		for (const auto& includeDirectory: project->GetIncludeDirectories())
 			out << " -I " << includeDirectory;
 		out << " -MF " << GetOutputFile("dep");
-		auto command = out.str();
-		STRING::CStringPtr commandCopy(new char[command.size() + 1]);
-		std::strcpy(commandCopy.Get(), command.c_str());
 
-		//Create the process (do not show the associated console)
-		auto result = ::CreateProcess(
-			nullptr,
-			commandCopy.Get(),
-			nullptr,
-			nullptr,
-			FALSE,
-			CREATE_NO_WINDOW,
-			nullptr,
-			FSYS::GetFilePath(project->GetFileName()).c_str(),
-			&startupInfo,
-			&processInfo);
-		ERR::CheckWindowsError(!result, "FileCompileSettings::NeedsToCompile", "CreateProcess");
-
-		//Attach resultant process and thread handles to scoped containers.
-		WIN::CHandle processThread(processInfo.hThread);
-		WIN::CHandle process(processInfo.hProcess);
-
-		//Wait for the process to complete
-		::WaitForSingleObject(processInfo.hProcess, INFINITE);
+		Process::Shell(out.str(), FSYS::GetFilePath(project->GetFileName()), CREATE_NO_WINDOW, true);
 	}
 	catch (...)
 	{
@@ -168,7 +139,17 @@ std::string FileCompileSettings::PrepareForCompile(const std::string& suffix) co
 	auto outputDirectory = FSYS::GetFilePath(outputFile);
 	//Make sure the output directory does exist
 	if (!FSYS::PathExists(outputDirectory))
-		FSYS::CreatePath(outputDirectory);
+	{
+		try
+		{
+			FSYS::CreatePath(outputDirectory);
+		}
+		catch (...)
+		{
+			if (!FSYS::PathExists(outputDirectory))
+				throw;
+		}
+	}
 	//Delete any previous output file that may have existed
 	if (FSYS::FileExists(outputFile))
 		::DeleteFile(outputFile.c_str());

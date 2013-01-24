@@ -33,6 +33,7 @@ bool DocumentView::OnCreate(CREATESTRUCT* cs)
 	background.Create(DocumentColor::background);
 	currentLine.Create(DocumentColor::currentLineBackground);
 	margin.Create(DocumentColor::marginBackground);
+	bookmarkBrush.Create(DocumentColor::marginBookmark);
 
 	auto dc = ::GetDC(GetHWND());
 	font.Create("Courier New", WIN::CFont::CalcHeight(dc, 10));
@@ -439,6 +440,15 @@ void DocumentView::OnCommand(WORD code, WORD id, HWND hwnd)
 	case ID_EDIT_DELETE:
 		document->PerformDelete();
 		break;
+	case ID_EDIT_TOGGLE_BOOKMARK:
+		OnToggleBookmark();
+		break;
+	case ID_EDIT_NEXT_BOOKMARK:
+		OnNextBookmark();
+		break;
+	case ID_EDIT_PREVIOUS_BOOKMARK:
+		OnPreviousBookmark();
+		break;
 	}
 }
 
@@ -459,6 +469,10 @@ void DocumentView::SetScrollPos(POINT pt)
 void DocumentView::UpdateScrollStatus()
 {
 	auto size = GetClientSize();
+	UpdateScrollBarStatus(SB_HORZ, size.cx, documentSize.cx);
+	size = GetClientSize();
+	UpdateScrollBarStatus(SB_VERT, size.cy, documentSize.cy);
+	size = GetClientSize();
 	UpdateScrollBarStatus(SB_HORZ, size.cx, documentSize.cx);
 	size = GetClientSize();
 	UpdateScrollBarStatus(SB_VERT, size.cy, documentSize.cy);
@@ -506,7 +520,7 @@ void DocumentView::UpdateCaret()
 SIZE DocumentView::GetClientSize()
 {
 	auto client = GetClientRect();
-	return { (client.right - client.left - marginWidth) / charSize.cx + 1, (client.bottom - client.top) / charSize.cy + 1 };
+	return { (client.right - client.left - marginWidth) / charSize.cx, (client.bottom - client.top) / charSize.cy };
 }
 
 RECT DocumentView::GetViewRect()
@@ -527,7 +541,7 @@ void DocumentView::DrawDocument(HDC dc)
 	auto view = GetViewRect();
 	unsigned long firstVisibleLine = view.top;
 	unsigned long lastVisibleLine = MATH::Min(
-		static_cast<unsigned long>(view.bottom),
+		static_cast<unsigned long>(view.bottom + 1),
 		document->GetLineCount());
 
 	auto selection = document->GetSelection();
@@ -567,7 +581,16 @@ void DocumentView::DrawDocument(HDC dc)
 		::SetTextColor(dc, DocumentColor::marginText);
 		::DrawText(dc, out.str().c_str(), marginLineNumberWidth, &lineRect, DT_LEFT|DT_SINGLELINE|DT_NOPREFIX);
 
-		//TODO: draw bookmark indicator if this line is bookmarked
+		if (document->IsLineBookmarked(index))
+		{
+			const auto bookmarkBorder = 3;
+			auto bookmarkRect = lineRect;
+			bookmarkRect.left += marginWidth - bookmarkWidth + bookmarkBorder;
+			bookmarkRect.right = bookmarkRect.left + bookmarkWidth - 2 * bookmarkBorder;
+			bookmarkRect.top += bookmarkBorder;
+			bookmarkRect.bottom -= bookmarkBorder;
+			::FillRect(dc, &bookmarkRect, bookmarkBrush);
+		}
 
 		lineRect.left += marginWidth;
 		auto isCurrentLine = selection.GetEndLine() == index;
@@ -605,25 +628,34 @@ void DocumentView::EnsureCaretVisible()
 	auto scrollPosition = GetScrollPos();
 	auto view = GetViewRect();
 	auto caret = document->GetSelection().GetEnd().ToPoint();
+	auto size = document->GetSize();
+	auto viewHeight = view.bottom - view.top;
+	auto maxScrollY = size.cy - viewHeight;
+	auto viewWidth = view.right - view.left;
+	auto maxScrollX = size.cx - viewWidth;
 
 	if (!::PtInRect(&view, caret))
 	{
 		if (caret.x < view.left)
 		{
 			scrollPosition.x -= (view.left - caret.x);
+			scrollPosition.x -= MATH::Min(scrollPosition.x, viewWidth / 2);
 		}
 		else if (caret.x >= view.right)
 		{
 			scrollPosition.x += (caret.x - view.right + 1);
+			scrollPosition.x = MATH::Min(scrollPosition.x + (viewWidth / 2), maxScrollX);
 		}
 
 		if (caret.y < view.top)
 		{
 			scrollPosition.y -= (view.top - caret.y);
+			scrollPosition.y -= MATH::Min(scrollPosition.y, viewHeight / 2);
 		}
 		else if (caret.y >= view.bottom)
 		{
 			scrollPosition.y += (caret.y - view.bottom + 1);
+			scrollPosition.y = MATH::Min(scrollPosition.y + (viewHeight / 2), maxScrollY);
 		}
 
 		SetScrollPos(scrollPosition);
@@ -783,6 +815,21 @@ unsigned long DocumentView::GetDocumentLineCount()
 std::string DocumentView::GetDocumentFileName()
 {
 	return document->GetFileName();
+}
+
+void DocumentView::OnToggleBookmark()
+{
+	document->ToggleBookmark();
+}
+
+void DocumentView::OnNextBookmark()
+{
+	document->NextBookmark();
+}
+
+void DocumentView::OnPreviousBookmark()
+{
+	document->PreviousBookmark();
 }
 
 void DocumentView::SetDocument(Document* document)

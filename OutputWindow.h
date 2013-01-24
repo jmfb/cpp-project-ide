@@ -15,6 +15,7 @@
 #include <list>
 #include "FileLocation.h"
 #include "OutputTarget.h"
+#include "FindInDocumentWindow.h"
 
 class OutputWindow :
 	public WIN::CWindowImpl<OutputWindow>,
@@ -40,11 +41,14 @@ public:
 
 	FileLocation GetSelectedFileLocation();
 
+	FindInDocumentWindow& GetFindInDocumentWindow();
+	
 public:
 	WIN::CEdit output;
 	WIN::CFont font;
 	WIN::CBrush background;
 	std::mutex messageQueueLock;
 	std::list<std::string> messageQueue;
+	FindInDocumentWindow findWindow;
 };
 

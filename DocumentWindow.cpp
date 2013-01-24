@@ -75,12 +75,21 @@ void DocumentWindow::OnCommand(WORD code, WORD id, HWND hwnd)
 void DocumentWindow::OnSetFocus(HWND prev)
 {
 	if (view.IsWindow() && view.IsVisible())
+	{
 		view.SetFocus();
+		auto documentId = tabs.GetSelectedItem();
+		if (events != nullptr && documentId != std::numeric_limits<decltype(documentId)>::max())
+			events->OnDocumentWindowSelectionChanged(documents[documentId].GetFileName());
+	}
 }
 
-void DocumentWindow::OnMDITabUnselectItem(int id, unsigned long item)
+unsigned long DocumentWindow::OnMDITabUnselectItem(int id, unsigned long item)
 {
 	scrollPositions[item] = view.GetScrollPos();
+
+	if (documentOrder.size() > 1)
+		return documentOrder[documentOrder.size() - 2];
+	return 0;
 }
 
 void DocumentWindow::OnMDITabSelectItem(int id, unsigned long item)
@@ -91,6 +100,11 @@ void DocumentWindow::OnMDITabSelectItem(int id, unsigned long item)
 	view.SetFocus();
 	if (events)
 		events->OnDocumentWindowSelectionChanged(documents[item].GetFileName());
+
+	auto iter = std::find(documentOrder.begin(), documentOrder.end(), item);
+	if (iter != documentOrder.end())
+		documentOrder.erase(iter);
+	documentOrder.push_back(item);
 }
 
 void DocumentWindow::OnMDITabNoSelection(int id)
@@ -114,6 +128,10 @@ void DocumentWindow::OnMDITabCloseSelection(int id, unsigned long item)
 	tabs.RemoveItem(item);
 	documents.erase(item);
 	scrollPositions.erase(item);
+
+	auto iter = std::find(documentOrder.begin(), documentOrder.end(), item);
+	if (iter != documentOrder.end())
+		documentOrder.erase(iter);
 }
 
 void DocumentWindow::SetEvents(DocumentWindowEvents* value)
@@ -145,6 +163,7 @@ void DocumentWindow::OpenDocument(const std::string& fileName)
 		if (item.second.GetFileName() == fileName)
 		{
 			tabs.Select(item.first);
+			SetViewFocus();
 			return;
 		}
 	}
@@ -158,6 +177,13 @@ void DocumentWindow::OpenDocument(const std::string& fileName)
 	tabs.AddItem(FSYS::GetFileName(fileName), 0, documentId);
 	tabs.Select(documentId);
 	SetViewFocus();
+}
+
+void DocumentWindow::CloseDocument(const std::string& fileName)
+{
+	for (const auto& item: documents)
+		if (item.second.GetFileName() == fileName)
+			OnMDITabCloseSelection(0, item.first);
 }
 
 void DocumentWindow::CloseSelectedDocument()
@@ -277,6 +303,9 @@ unsigned long DocumentWindow::GetDocumentLineCount()
 void DocumentWindow::SetViewFocus()
 {
 	view.Post(WM_COMMAND, MAKEWPARAM(ID_SELECT_SET_FOCUS, 0));
+	auto documentId = tabs.GetSelectedItem();
+	if (events != nullptr && documentId != std::numeric_limits<decltype(documentId)>::max())
+		events->OnDocumentWindowSelectionChanged(documents[documentId].GetFileName());
 }
 
 std::string DocumentWindow::GetDocumentFileName()

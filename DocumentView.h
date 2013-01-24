@@ -69,6 +69,9 @@ public:
 	void SetOutputTarget(OutputTarget* outputTarget);
 	unsigned long GetDocumentLineCount();
 	std::string GetDocumentFileName();
+	void OnToggleBookmark();
+	void OnNextBookmark();
+	void OnPreviousBookmark();
 
 	void SetDocument(Document* document);
 
@@ -83,6 +86,7 @@ private:
 	WIN::CBrush background;
 	WIN::CBrush currentLine;
 	WIN::CBrush margin;
+	WIN::CBrush bookmarkBrush;
 	WIN::CFont font;
 	TEXTMETRIC metrics = {0};
 	SIZE charSize = {0};

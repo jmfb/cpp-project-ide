@@ -18,6 +18,7 @@
 #include "FindInDocumentEvents.h"
 #include "OutputTarget.h"
 #include "Project.h"
+#include <vector>
 
 class DocumentWindow :
 	public WIN::CWindowImpl<DocumentWindow>,
@@ -38,7 +39,7 @@ public:
 	void OnCommand(WORD code, WORD id, HWND hwnd) override;
 	void OnSetFocus(HWND prev) override;
 
-	void OnMDITabUnselectItem(int id, unsigned long item) override;
+	unsigned long OnMDITabUnselectItem(int id, unsigned long item) override;
 	void OnMDITabSelectItem(int id, unsigned long item) override;
 	void OnMDITabNoSelection(int id) override;
 	void OnMDITabCloseSelection(int id, unsigned long item) override;
@@ -46,6 +47,7 @@ public:
 	void SetEvents(DocumentWindowEvents* value);
 	void SetProject(Project* project);
 	void OpenDocument(const std::string& fileName);
+	void CloseDocument(const std::string& fileName);
 	void CloseSelectedDocument();
 	void CloseAllDocuments();
 	void CloseAllButThis();
@@ -69,5 +71,6 @@ private:
 	std::map<unsigned long, POINT> scrollPositions;
 	DocumentWindowEvents* events = nullptr;
 	Project* project = nullptr;
+	std::vector<unsigned long> documentOrder;
 };
 

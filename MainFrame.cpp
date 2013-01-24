@@ -19,7 +19,11 @@
 #include "ProjectSettingsDialog.h"
 #include "EditOptionsDialog.h"
 #include "DocumentUtility.h"
+#include "OutputWindow.h"
+#include "FindInDocumentWindow.h"
+#include "TestResultsWindow.h"
 #include "BuildThread.h"
+#include "Process.h"
 #include "Settings.h"
 #include "resource.h"
 #include <cstring>
@@ -55,13 +59,7 @@ bool MainFrame::OnCreate(CREATESTRUCT* cs)
 		-1,
 		WIN::SPLIT_BOTH,
 		true);
-	findSplitter.Create(
-		documentSplitter,
-		WIN::RECT_DEFAULT,
-		false,
-		-1,
-		WIN::SPLIT_BOTH,
-		false);
+	verticalSplitter.Create(documentSplitter, WIN::RECT_DEFAULT);
 
 	projectWindow.Create(
 		projectSplitter,
@@ -70,18 +68,17 @@ bool MainFrame::OnCreate(CREATESTRUCT* cs)
 		WS_CHILD|WS_VISIBLE|WS_CLIPSIBLINGS|WS_CLIPCHILDREN,
 		WS_EX_CONTROLPARENT);
 	documentWindow.Create(
-		documentSplitter,
+		verticalSplitter,
 		nullptr,
 		nullptr,
 		WS_CHILD|WS_VISIBLE|WS_CLIPSIBLINGS|WS_CLIPCHILDREN);
-	findWindow.Create(
-		findSplitter,
+	otherDocumentWindow.Create(
+		verticalSplitter,
 		nullptr,
 		nullptr,
-		WS_CHILD|WS_VISIBLE|WS_CLIPSIBLINGS|WS_CLIPCHILDREN,
-		WS_EX_CONTROLPARENT);
-	outputWindow.Create(
-		findSplitter,
+		WS_CHILD|WS_VISIBLE|WS_CLIPSIBLINGS|WS_CLIPCHILDREN);
+	toolWindow.Create(
+		documentSplitter,
 		nullptr,
 		nullptr,
 		WS_CHILD|WS_VISIBLE|WS_CLIPSIBLINGS|WS_CLIPCHILDREN,
@@ -89,17 +86,26 @@ bool MainFrame::OnCreate(CREATESTRUCT* cs)
 
 	projectSplitter.SetPanes(projectWindow, documentSplitter);
 	projectSplitter.SetPos(250);
-	documentSplitter.SetPanes(documentWindow, findSplitter);
+	documentSplitter.SetPanes(verticalSplitter, toolWindow);
 	documentSplitter.SetPos(200);
-	findSplitter.SetPanes(findWindow, outputWindow);
-	findSplitter.SetPos(12);
+	verticalSplitter.SetPanes(documentWindow, otherDocumentWindow);
+	verticalSplitter.SetPos(800);
+
+	outputWindow = &toolWindow.GetOutputWindow();
+	findWindow = &toolWindow.GetFindInDocumentWindow();
+	testResultsWindow = &toolWindow.GetTestResultsWindow();
 
 	projectWindow.SetEvents(this);
 	documentWindow.SetEvents(this);
 	documentWindow.SetProject(&project);
-	findWindow.SetEvents(documentWindow.GetFindInDocumentEvents());
-	documentWindow.SetOutputTarget(&outputWindow);
-	outputWindow.Append("Ready\r\n");
+	findWindow->SetEvents(documentWindow.GetFindInDocumentEvents());
+	testResultsWindow->SetTopLevelEvents(this);
+	documentWindow.SetOutputTarget(outputWindow);
+	outputWindow->Append("Ready\r\n");
+
+	otherDocumentWindow.SetEvents(this);
+	otherDocumentWindow.SetProject(&project);
+	otherDocumentWindow.SetOutputTarget(outputWindow);
 
 	return true;
 }
@@ -164,8 +170,10 @@ void MainFrame::OnCommand(WORD code, WORD id, HWND hwnd)
 	case ID_EDIT_DELETE:
 		if (projectWindow.HasFocus())
 			projectWindow.DeleteSelection();
-		else
+		else if (documentWindow.HasFocus())
 			documentWindow.OnCommand(code, id, hwnd);
+		else if (otherDocumentWindow.HasFocus())
+			otherDocumentWindow.OnCommand(code, id, hwnd);
 		break;
 	case ID_FILE_CREATE_CLASS:
 		OnFileCreateClass();
@@ -209,10 +217,18 @@ void MainFrame::OnCommand(WORD code, WORD id, HWND hwnd)
 	case ID_TOOLS_EDIT_OPTIONS:
 		OnToolsEditOptions();
 		break;
+	case ID_EDIT_SWITCH_DOCUMENTS:
+		OnEditSwitchDocuments();
+		break;
 
 	default:
 		if (id >= ID_FIRST_DOCUMENT_COMMAND && id <= ID_LAST_DOCUMENT_COMMAND)
-			documentWindow.OnCommand(code, id, hwnd);
+		{
+			if (documentWindow.HasFocus())
+				documentWindow.OnCommand(code, id, hwnd);
+			else if (otherDocumentWindow.HasFocus())
+				otherDocumentWindow.OnCommand(code, id, hwnd);
+		}
 		break;
 	}
 }
@@ -292,6 +308,7 @@ void MainFrame::OnFileSaveProject()
 		if (project.IsDirty())
 			project.Save(project.GetFileName());
 		documentWindow.SaveAllDirtyDocuments();
+		otherDocumentWindow.SaveAllDirtyDocuments();
 	}
 }
 
@@ -307,28 +324,38 @@ void MainFrame::OnFileRename()
 
 void MainFrame::OnFileCloseDocument()
 {
-	documentWindow.CloseSelectedDocument();
+	if (documentWindow.HasFocus())
+		documentWindow.CloseSelectedDocument();
+	else if (otherDocumentWindow.HasFocus())
+		otherDocumentWindow.CloseSelectedDocument();
 }
 
 void MainFrame::OnFileCloseAllDocuments()
 {
-	if (documentWindow.IsAnyDocumentDirty())
+	if (documentWindow.IsAnyDocumentDirty() || otherDocumentWindow.IsAnyDocumentDirty())
 	{
 		auto result = MsgBox("Save changes to documents?", "Save Changes?", MB_YESNOCANCEL);
 		if (result == IDCANCEL)
 		{
-			documentWindow.SetFocus();
+			documentWindow.SetViewFocus();
 			return;
 		}
 		if (result == IDYES)
+		{
 			documentWindow.SaveAllDirtyDocuments();
+			otherDocumentWindow.SaveAllDirtyDocuments();
+		}
 	}
 	documentWindow.CloseAllDocuments();
+	otherDocumentWindow.CloseAllDocuments();
 }
 
 void MainFrame::OnFileCloseAllButThis()
 {
-	documentWindow.CloseAllButThis();
+	if (documentWindow.HasFocus())
+		documentWindow.CloseAllButThis();
+	else if (otherDocumentWindow.HasFocus())
+		otherDocumentWindow.CloseAllButThis();
 }
 
 void MainFrame::OnFileOpenContainingFolder()
@@ -342,21 +369,31 @@ void MainFrame::OnFileOpenContainingFolder()
 	}
 }
 
-void MainFrame::OnProjectOpenFile(const std::string& fileName)
+void MainFrame::OnProjectOpenFile(const std::string& fileName, bool openInOther)
 {
-	documentWindow.OpenDocument(fileName);
+	if (openInOther)
+	{
+		documentWindow.CloseDocument(fileName);
+		otherDocumentWindow.OpenDocument(fileName);
+	}
+	else
+	{
+		otherDocumentWindow.CloseDocument(fileName);
+		documentWindow.OpenDocument(fileName);
+	}
 }
 
 void MainFrame::OnProjectRenameFile(const std::string& oldFileName, const std::string& newFileName)
 {
 	documentWindow.RenameDocument(oldFileName, newFileName);
+	otherDocumentWindow.RenameDocument(oldFileName, newFileName);
 }
 
 void MainFrame::OnEditOpenFile()
 {
 	Settings settings;
 	auto systemIncludeDirectories = settings.GetSystemIncludeDirectories();
-	auto fileNamePair = documentWindow.GetFileNameAtCursor();
+	auto fileNamePair = documentWindow.HasFocus() ? documentWindow.GetFileNameAtCursor() : otherDocumentWindow.GetFileNameAtCursor();
 	if (!fileNamePair.first.empty())
 	{
 		auto directories = systemIncludeDirectories;
@@ -369,6 +406,7 @@ void MainFrame::OnEditOpenFile()
 		for (const auto& directory: directories)
 		{
 			auto fullPath = FSYS::FormatPath(directory, fileNamePair.first);
+			fullPath = STRING::replace(fullPath, "/", "\\");
 			if (FSYS::FileExists(fullPath))
 			{
 				documentWindow.OpenDocument(fullPath);
@@ -397,7 +435,15 @@ void MainFrame::OnFileCreateFile()
 	NewFileDialog dlg;
 	if (dlg.DoModal(GetHWND()) == IDOK)
 	{
-		auto fileName = FSYS::FormatPath(FSYS::GetFilePath(project.GetFileName()), dlg.GetName());
+		auto directory = FSYS::GetFilePath(project.GetFileName());
+		if (!dlg.GetDirectory().empty())
+		{
+			directory = FSYS::FormatPath(directory, dlg.GetDirectory());
+			if (!FSYS::PathExists(directory))
+				FSYS::CreatePath(directory);
+		}
+
+		auto fileName = FSYS::FormatPath(directory, dlg.GetName());
 		if (FSYS::FileExists(fileName))
 		{
 			auto result = MsgBox(
@@ -408,7 +454,10 @@ void MainFrame::OnFileCreateFile()
 				return;
 		}
 
-		projectWindow.CreateNewFile(dlg.GetName());
+		auto relativePath = dlg.GetName();
+		if (!dlg.GetDirectory().empty())
+			relativePath = FSYS::FormatPath(dlg.GetDirectory(), relativePath);
+		projectWindow.CreateNewFile(relativePath);
 
 		std::ofstream out(fileName.c_str());
 		out << std::endl;
@@ -590,9 +639,11 @@ void MainFrame::OnBuildCompile()
 	if (project.IsDirty())
 		project.Save(project.GetFileName());
 	documentWindow.SaveAllDirtyDocuments();
+	otherDocumentWindow.SaveAllDirtyDocuments();
 
 	//Clear the output window
-	outputWindow.Clear();
+	outputWindow->Clear();
+	toolWindow.ShowOutputWindow();
 
 	stoppingBuild = false;
 	buildThread.reset(new BuildThread());
@@ -615,9 +666,11 @@ void MainFrame::OnBuildBuild()
 	if (project.IsDirty())
 		project.Save(project.GetFileName());
 	documentWindow.SaveAllDirtyDocuments();
+	otherDocumentWindow.SaveAllDirtyDocuments();
 
 	//Clear the output window
-	outputWindow.Clear();
+	outputWindow->Clear();
+	toolWindow.ShowOutputWindow();
 
 	stoppingBuild = false;
 	buildThread.reset(new BuildThread());
@@ -798,43 +851,29 @@ void MainFrame::OnBuildExecuteUnitTest()
 		return;
 	}
 
-	STARTUPINFO startupInfo = {0};
-	std::memset(&startupInfo, 0, sizeof(startupInfo));
-	startupInfo.cb = sizeof(startupInfo);
+	toolWindow.ShowTestResultsWindow();
 
-	PROCESS_INFORMATION processInfo = {0};
-	std::memset(&processInfo, 0, sizeof(processInfo));
-
-	//We need to make a copy of the string for the command line (non-const)
-	STRING::CStringPtr commandCopy(new char[targetFile.size() + 1]);
-	std::strcpy(commandCopy.Get(), targetFile.c_str());
-
-	//Create the process (do not show the associated console)
-	auto result = ::CreateProcess(
-		nullptr,
-		commandCopy.Get(),
-		nullptr,
-		nullptr,
-		FALSE,
-		CREATE_NEW_PROCESS_GROUP,
-		nullptr,
-		FSYS::GetFilePath(targetFile).c_str(),
-		&startupInfo,
-		&processInfo);
-	if (!result)
+	try
 	{
-		MsgBox("Failed to create the process.", "Could not execute.", MB_OK|MB_ICONEXCLAMATION);
-		return;
+		Process process;
+		process.Start(targetFile + " PrintTests", FSYS::GetFilePath(targetFile));
+		process.SoftWaitForExit();
+		auto testList = process.ReadOutputPipe();
+		testResultsWindow->RunTests(testList, targetFile);
 	}
-
-	//Attach resultant process and thread handles to scoped containers.
-	WIN::CHandle processThread(processInfo.hThread);
-	WIN::CHandle process(processInfo.hProcess);
+	catch (const ERR::CError& error)
+	{
+		MsgBox(error.Format(), "Error", MB_OK|MB_ICONERROR);
+	}
 }
 
 void MainFrame::OnBuildGotoError()
 {
-	auto fileLocation = outputWindow.GetSelectedFileLocation();
+	GotoFileLocation(outputWindow->GetSelectedFileLocation());
+}
+
+void MainFrame::GotoFileLocation(const FileLocation& fileLocation)
+{
 	if (fileLocation.IsValid())
 	{
 		auto fileName = FSYS::FormatPath(FSYS::GetFilePath(project.GetFileName()), fileLocation.GetFileName());
@@ -849,7 +888,8 @@ void MainFrame::OnBuildGotoError()
 
 void MainFrame::OnEditFind()
 {
-	findWindow.OnEditFind();
+	toolWindow.ShowOutputWindow();
+	findWindow->OnEditFind();
 }
 
 void MainFrame::OnEditGotoLine()
@@ -857,11 +897,20 @@ void MainFrame::OnEditGotoLine()
 	if (!documentWindow.IsDocumentOpen())
 		return;
 	GotoLineDialog dlg;
-	dlg.SetLineCount(documentWindow.GetDocumentLineCount());
+	auto isDocumentWindow = documentWindow.HasFocus();
+	dlg.SetLineCount(isDocumentWindow ? documentWindow.GetDocumentLineCount() : otherDocumentWindow.GetDocumentLineCount());
 	if (dlg.DoModal(GetHWND()) == IDOK)
 	{
-		documentWindow.SetCursorPosition(dlg.GetLine(), 0);
-		documentWindow.SetViewFocus();
+		if (isDocumentWindow)
+		{
+			documentWindow.SetCursorPosition(dlg.GetLine(), 0);
+			documentWindow.SetViewFocus();
+		}
+		else
+		{
+			otherDocumentWindow.SetCursorPosition(dlg.GetLine(), 0);
+			otherDocumentWindow.SetViewFocus();
+		}
 	}
 }
 
@@ -922,7 +971,8 @@ void MainFrame::OnEditFindInFiles()
 
 		FindVisitor visitor(&project, findText);
 		project.GetRootFolder().Visit(&visitor);
-		visitor.Finish(&outputWindow);
+		toolWindow.ShowOutputWindow();
+		visitor.Finish(outputWindow);
 	}
 }
 
@@ -930,6 +980,14 @@ void MainFrame::OnToolsEditOptions()
 {
 	EditOptionsDialog dlg;
 	dlg.DoModal(GetHWND());
+}
+
+void MainFrame::OnEditSwitchDocuments()
+{
+	if (documentWindow.HasFocus())
+		otherDocumentWindow.SetViewFocus();
+	else
+		documentWindow.SetViewFocus();
 }
 
 void MainFrame::OnDocumentWindowSelectionChanged(const std::string& fileName)
@@ -944,12 +1002,12 @@ bool MainFrame::IsStopping() const
 
 void MainFrame::ProcessMessage(unsigned long id, const std::string& message)
 {
-	outputWindow.ProcessBuildMessage(id, message);
+	outputWindow->ProcessBuildMessage(id, message);
 }
 
 bool MainFrame::CloseProject()
 {
-	if (project.IsOpen() && (project.IsDirty() || documentWindow.IsAnyDocumentDirty()))
+	if (project.IsOpen() && (project.IsDirty() || documentWindow.IsAnyDocumentDirty() || otherDocumentWindow.IsAnyDocumentDirty()))
 	{
 		auto result = MsgBox("Save changes to project?", "Save Changes?", MB_YESNOCANCEL);
 		if (result == IDCANCEL)
@@ -959,12 +1017,14 @@ bool MainFrame::CloseProject()
 			if (project.IsDirty())
 				project.Save(project.GetFileName());
 			documentWindow.SaveAllDirtyDocuments();
+			otherDocumentWindow.SaveAllDirtyDocuments();
 		}
 	}
 
 	project.Close();
 	projectWindow.Clear();
 	documentWindow.CloseAllDocuments();
+	otherDocumentWindow.CloseAllDocuments();
 	return true;
 }
 

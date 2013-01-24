@@ -15,20 +15,18 @@ BaseThread::~BaseThread()
 void BaseThread::Start()
 {
 	Stop();
-	thread.reset(new std::thread(&RunCallback, this));
+	Create();
 }
 
 void BaseThread::Stop()
 {
-	if (thread)
-	{
-		thread->join();
-		thread.reset();
-	}
+	if (!IsNull())
+		Wait();
 }
 
-void BaseThread::RunCallback(BaseThread* instance)
+unsigned int BaseThread::OnRun()
 {
-	instance->Run();
+	Run();
+	return 0;
 }
 

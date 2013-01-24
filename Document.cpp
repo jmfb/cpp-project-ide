@@ -1197,6 +1197,43 @@ void Document::SelectEndOfFile(bool extend, bool isVertical)
 	SelectPosition(position, extend, isVertical);
 }
 
+void Document::ToggleBookmark()
+{
+	auto line = selection.GetEndLine();
+	auto iter = bookmarks.find(line);
+	if (iter == bookmarks.end())
+		bookmarks.insert(line);
+	else
+		bookmarks.erase(iter);
+	RaiseEvents();
+}
+
+void Document::NextBookmark()
+{
+	if (bookmarks.empty())
+		return;
+	auto iter = bookmarks.upper_bound(selection.GetEndLine());
+	if (iter == bookmarks.end())
+		iter = bookmarks.begin();
+	SelectPosition({ *iter, 0 }, false, false);
+}
+
+void Document::PreviousBookmark()
+{
+	if (bookmarks.empty())
+		return;
+	auto iter = bookmarks.lower_bound(selection.GetEndLine());
+	if (iter == bookmarks.begin())
+		iter = bookmarks.end();
+	--iter;
+	SelectPosition({ *iter, 0 }, false, false);
+}
+
+bool Document::IsLineBookmarked(unsigned long index) const
+{
+	return bookmarks.find(index) != bookmarks.end();
+}
+
 void Document::FindTextInDocument(const std::string& text, OutputTarget* outputTarget)
 {
 	if (outputTarget == nullptr || fileName.empty())

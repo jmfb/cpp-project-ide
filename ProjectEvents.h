@@ -14,7 +14,7 @@
 class ProjectEvents
 {
 public:
-	virtual void OnProjectOpenFile(const std::string& fileName) = 0;
+	virtual void OnProjectOpenFile(const std::string& fileName, bool openInOther) = 0;
 	virtual void OnProjectRenameFile(const std::string& oldFileName, const std::string& newFileName) = 0;
 };
 
