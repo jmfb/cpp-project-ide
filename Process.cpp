@@ -6,7 +6,7 @@
 // Author:      Jacob Buysse
 ////////////////////////////////////////////////////////////////////////////////
 #include "pch.h"
-#include "Process.h"
+#include "Process2.h"
 #include <thread>
 
 void Process::Shell(const std::string& command, const std::string& workingDirectory, unsigned long createFlags, bool waitForExit)

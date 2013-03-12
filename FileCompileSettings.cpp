@@ -7,7 +7,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 #include "pch.h"
 #include "FileCompileSettings.h"
-#include "Process.h"
+#include "Process2.h"
 
 void FileCompileSettings::SetProjectItemFile(Project* project, ProjectItemFile* projectItem)
 {

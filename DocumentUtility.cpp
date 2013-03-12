@@ -13,6 +13,8 @@
 
 std::string DocumentUtility::GenerateFileHeader(const std::string& fileName, const std::string& description)
 {
+	return {};
+#if 0
 	std::ostringstream out;
 	out << std::string(80, '/') << std::endl
 		<< "// Filename:    " << FSYS::GetFileName(fileName) << std::endl
@@ -22,6 +24,7 @@ std::string DocumentUtility::GenerateFileHeader(const std::string& fileName, con
 		<< "// Author:      Jacob Buysse" << std::endl
 		<< std::string(80, '/') << std::endl;
 	return out.str();
+#endif
 }
 
 std::string DocumentUtility::GenerateOneTimeInclude()

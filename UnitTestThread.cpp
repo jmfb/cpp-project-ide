@@ -6,7 +6,7 @@
 // Author:      Jacob Buysse
 ////////////////////////////////////////////////////////////////////////////////
 #include "UnitTestThread.h"
-#include "Process.h"
+#include "Process2.h"
 
 UnitTestThread::UnitTestThread()
 	: done(false)

@@ -5,7 +5,7 @@
 // Created:     2012-09-12 23:58:49
 // Author:      Jacob Buysse
 ////////////////////////////////////////////////////////////////////////////////
-#include "Process.h"
+#include "Process2.h"
 #include <UnitTest/UnitTest.h>
 using UnitTest::Assert;
 

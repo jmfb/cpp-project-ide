@@ -7,7 +7,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 #include "pch.h"
 #include "CompileThread.h"
-#include "Process.h"
+#include "Process2.h"
 #include <cstring>
 
 CompileThread::CompileThread()

@@ -23,7 +23,7 @@
 #include "FindInDocumentWindow.h"
 #include "TestResultsWindow.h"
 #include "BuildThread.h"
-#include "Process.h"
+#include "Process2.h"
 #include "Settings.h"
 #include "resource.h"
 #include <cstring>

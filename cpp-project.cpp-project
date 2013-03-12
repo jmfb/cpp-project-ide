@@ -186,7 +186,7 @@
 			</Folder>
 			<Folder name="Utility Classes">
 				<Folder name="Process">
-					<File>Process.h</File>
+					<File>Process2.h</File>
 					<File>Process.cpp</File>
 					<File>Process.Test.cpp</File>
 				</Folder>
