@@ -31,5 +31,7 @@ private:
 	WIN::CComboBox comboSubsystem;
 	WIN::CComboBox comboWarnings;
 	WIN::CComboBox comboOptimization;
+	WIN::CComboBox comboTarget;
+	WIN::CComboBox comboArchitecture;
 };
 

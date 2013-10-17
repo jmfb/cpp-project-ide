@@ -23,6 +23,8 @@ const auto defaultSubsystem = "windows";
 const auto defaultWarnings = "all";
 const auto defaultWarningsAsErrors = true;
 const auto defaultOptimizationLevel = "4";
+const auto defaultTarget = "EXE";
+const auto defaultArchitecture = "32-bit";
 const auto defaultDebugInfo = false;
 const auto defaultMultithreaded = true;
 const auto defaultOutputFolder = "output";
@@ -51,6 +53,8 @@ void Project::New(const std::string& directory, const std::string& name)
 	warnings = defaultWarnings;
 	warningsAsErrors = defaultWarningsAsErrors;
 	optimizationLevel = defaultOptimizationLevel;
+	target = defaultTarget;
+	architecture = defaultArchitecture;
 	debugInfo = defaultDebugInfo;
 	multithreaded = defaultMultithreaded;
 	outputFolder = defaultOutputFolder;
@@ -92,6 +96,8 @@ void Project::Open(const std::string& fileName)
 	warnings = loadSetting("Warnings", defaultWarnings);
 	warningsAsErrors = loadBitSetting("WarningsAsErrors", defaultWarningsAsErrors);
 	optimizationLevel = loadSetting("OptimizationLevel", defaultOptimizationLevel);
+	target = loadSetting("Target", defaultTarget);
+	architecture = loadSetting("Architecture", defaultArchitecture);
 	debugInfo = loadBitSetting("DebugInfo", defaultDebugInfo);
 	multithreaded = loadBitSetting("Multithreaded", defaultMultithreaded);
 	outputFolder = loadSetting("OutputFolder", defaultOutputFolder);
@@ -164,6 +170,8 @@ void Project::Save(const std::string& fileName)
 	saveSetting("Warnings", warnings);
 	saveBitSetting("WarningsAsErrors", warningsAsErrors);
 	saveSetting("OptimizationLevel", optimizationLevel);
+	saveSetting("Target", target);
+	saveSetting("Architecture", architecture);
 	saveBitSetting("DebugInfo", debugInfo);
 	saveBitSetting("Multithreaded", multithreaded);
 	saveSetting("OutputFolder", outputFolder);
@@ -238,6 +246,16 @@ const std::string& Project::GetOptimizationLevel() const
 	return optimizationLevel;
 }
 
+const std::string& Project::GetTarget() const
+{
+	return target;
+}
+
+const std::string& Project::GetArchitecture() const
+{
+	return architecture;
+}
+
 bool Project::GetDebugInfo() const
 {
 	return debugInfo;
@@ -307,6 +325,18 @@ void Project::SetOptimizationLevel(const std::string& value)
 {
 	isDirty = true;
 	optimizationLevel = value;
+}
+
+void Project::SetTarget(const std::string& value)
+{
+	isDirty = true;
+	target = value;
+}
+
+void Project::SetArchitecture(const std::string& value)
+{
+	isDirty = true;
+	architecture = value;
 }
 
 void Project::SetDebugInfo(const bool value)

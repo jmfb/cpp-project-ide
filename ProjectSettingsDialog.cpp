@@ -19,12 +19,12 @@ bool ProjectSettingsDialog::OnInitDialog(LPARAM param)
 	comboStandard.AddString("c++98");
 	comboStandard.AddString("c++11");
 	comboStandard.SelectString(project->GetStandard());
-	
+
 	comboSubsystem = GetDlgItem(IDC_COMBO_SUBSYSTEM);
 	comboSubsystem.AddString("windows");
 	comboSubsystem.AddString("console");
 	comboSubsystem.SelectString(project->GetSubsystem());
-	
+
 	comboWarnings = GetDlgItem(IDC_COMBO_WARNINGS);
 	comboWarnings.AddString("");
 	comboWarnings.AddString("all");
@@ -44,6 +44,16 @@ bool ProjectSettingsDialog::OnInitDialog(LPARAM param)
 	comboOptimization.AddString("s");
 	comboOptimization.AddString("fast");
 	comboOptimization.SelectString(project->GetOptimizationLevel());
+
+	comboTarget = GetDlgItem(IDC_COMBO_TARGET);
+	comboTarget.AddString("EXE");
+	comboTarget.AddString("DLL");
+	comboTarget.SelectString(project->GetTarget());
+
+	comboArchitecture = GetDlgItem(IDC_COMBO_ARCHITECTURE);
+	comboArchitecture.AddString("32-bit");
+	comboArchitecture.AddString("64-bit");
+	comboArchitecture.SelectString(project->GetArchitecture());
 
 	if (project->GetDebugInfo())
 		SetDlgItemChecked(IDC_CHECK_DEBUG);
@@ -88,6 +98,10 @@ void ProjectSettingsDialog::OnCommand(WORD code, WORD id, HWND hwnd)
 				problems << "Please select a valid warnings level." << std::endl;
 			if (comboOptimization.GetCurSel() == CB_ERR)
 				problems << "Please select a valid optimization level." << std::endl;
+			if (comboTarget.GetCurSel() == CB_ERR)
+				problems << "Please select a valid target." << std::endl;
+			if (comboArchitecture.GetCurSel() == CB_ERR)
+				problems << "Please select a valid architecture." << std::endl;
 
 			auto problemsText = problems.str();
 			if (problemsText.empty())
@@ -100,6 +114,8 @@ void ProjectSettingsDialog::OnCommand(WORD code, WORD id, HWND hwnd)
 				project->SetWarnings(comboWarnings.GetText());
 				project->SetWarningsAsErrors(IsDlgItemChecked(IDC_CHECK_WARNINGS_AS_ERRORS));
 				project->SetOptimizationLevel(comboOptimization.GetText());
+				project->SetTarget(comboTarget.GetText());
+				project->SetArchitecture(comboArchitecture.GetText());
 				project->SetDebugInfo(IsDlgItemChecked(IDC_CHECK_DEBUG));
 				project->SetMultithreaded(IsDlgItemChecked(IDC_CHECK_MULTITHREADED));
 
@@ -124,7 +140,7 @@ void ProjectSettingsDialog::OnCommand(WORD code, WORD id, HWND hwnd)
 						libraries.push_back(library);
 				}
 				project->SetLibraries(libraries);
-				
+
 				End(id);
 			}
 			else

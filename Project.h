@@ -42,6 +42,8 @@ public:
 	const std::string& GetWarnings() const;
 	bool GetWarningsAsErrors() const;
 	const std::string& GetOptimizationLevel() const;
+	const std::string& GetTarget() const;
+	const std::string& GetArchitecture() const;
 	bool GetDebugInfo() const;
 	bool GetMultithreaded() const;
 	const std::string& GetOutputFolder() const;
@@ -56,6 +58,8 @@ public:
 	void SetWarnings(const std::string& value);
 	void SetWarningsAsErrors(bool value);
 	void SetOptimizationLevel(const std::string& value);
+	void SetTarget(const std::string& value);
+	void SetArchitecture(const std::string& value);
 	void SetDebugInfo(const bool value);
 	void SetMultithreaded(const bool value);
 	void SetOutputFolder(const std::string& value);
@@ -84,6 +88,8 @@ private:
 	std::string warnings;
 	bool warningsAsErrors;
 	std::string optimizationLevel;
+	std::string target;
+	std::string architecture;
 	bool debugInfo;
 	bool multithreaded;
 	std::string outputFolder;

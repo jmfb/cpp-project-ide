@@ -179,6 +179,8 @@ std::string FileCompileSettings::GetCompileCommand() const
 		out << " -std=" << project->GetStandard();
 		if (project->GetDebugInfo())
 			out << " -ggdb";
+		if (project->GetArchitecture() == "64-bit")
+			out << " -m64";
 		if (project->GetMultithreaded())
 			out << " -mthreads";
 		out << " -c " << fileName;

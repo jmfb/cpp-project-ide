@@ -132,14 +132,19 @@ void CompileThread::PrepareForLink() const
 
 std::string CompileThread::GetLinkingCommand() const
 {
-	//g++ -O3 -Wall -std=c++11 ./output/resource.o -o ./output/cpp-project.exe
-	//-mthreads -Xlinker --subsystem -Xlinker windows -lcomctl32
+	//	g++ -O3 -Wall -std=c++11 -ggdb -shared -m64
+	//	./output/resource.o -o ./output/cpp-project.exe
+	//	-mthreads -Xlinker --subsystem -Xlinker windows -lcomctl32
 	std::ostringstream out;
 	out << "g++ -O" << project->GetOptimizationLevel()
 		<< " -W" << project->GetWarnings()
 		<< " -std=" << project->GetStandard();
 	if (project->GetDebugInfo())
 		out << " -ggdb";
+	if (project->GetTarget() == "DLL")
+		out << " -shared";
+	if (project->GetArchitecture() == "64-bit")
+		out << " -m64";
 	out << " " << objects << " -o ./" << GetTargetFile();
 	if (project->GetMultithreaded())
 		out << " -mthreads";
