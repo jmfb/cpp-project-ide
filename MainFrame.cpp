@@ -483,7 +483,7 @@ void MainFrame::OnFileAddExistingFile()
 	ofn.hwndOwner = GetHWND();
 	ofn.lpstrFilter =
 		"Code Files\0*.cpp;*.h;*.inl;*.rc\0"
-		"Resource Files\0*.ico;*.bmp;*.xml;*.txt\0"
+		"Resource Files\0*.ico;*.bmp;*.xml;*.txt;*.def\0"
 		"All Files\0*.*\0";
 	ofn.nFilterIndex = 1;
 	ofn.lpstrFile = buffer;
@@ -703,6 +703,10 @@ void MainFrame::OnBuildBuild()
 					objects << "./" << outputFile << " ";
 				if (isTestObject)
 					testObjects << "./" << outputFile << " ";
+			}
+			else if (setting.IsModuleDefinitionFile())
+			{
+				objects << setting.GetFileName() << " ";
 			}
 		}
 		void VisitFolder(ProjectItemFolder& folder) override

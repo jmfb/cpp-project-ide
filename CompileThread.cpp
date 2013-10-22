@@ -133,7 +133,7 @@ void CompileThread::PrepareForLink() const
 std::string CompileThread::GetLinkingCommand() const
 {
 	//	g++ -O3 -Wall -std=c++11 -ggdb -shared -m64
-	//	./output/resource.o -o ./output/cpp-project.exe
+	//	./output/resource.o ./test.def -o ./output/cpp-project.exe
 	//	-mthreads -Xlinker --subsystem -Xlinker windows -lcomctl32
 	std::ostringstream out;
 	out << "g++ -O" << project->GetOptimizationLevel()

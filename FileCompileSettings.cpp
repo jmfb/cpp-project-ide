@@ -24,6 +24,11 @@ bool FileCompileSettings::CanCompile() const
 	return validExtensions.find(extension) != validExtensions.end();
 }
 
+bool FileCompileSettings::IsModuleDefinitionFile() const
+{
+	return STRING::upper(FSYS::GetFileExt(projectItem->GetName())) == "DEF";
+}
+
 bool FileCompileSettings::NeedsToCompile() const
 {
 	auto extension = STRING::upper(FSYS::GetFileExt(projectItem->GetName()));

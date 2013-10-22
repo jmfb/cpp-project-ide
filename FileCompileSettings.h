@@ -22,6 +22,7 @@ public:
 	void SetProjectItemFile(Project* project, ProjectItemFile* projectItem);
 
 	bool CanCompile() const;
+	bool IsModuleDefinitionFile() const;
 	bool NeedsToCompile() const;
 	const std::string& GetFileName() const;
 	std::string PrepareForCompile(const std::string& suffix) const;
