@@ -141,8 +141,11 @@ std::string CompileThread::GetLinkingCommand() const
 		<< " -std=" << project->GetStandard();
 	if (project->GetDebugInfo())
 		out << " -ggdb";
-	if (project->GetTarget() == "DLL")
+	if (project->GetTarget() == "DLL" && !unitTest)
+	{
 		out << " -shared";
+		out << " -Wl,--out-implib,./" << project->GetOutputFolder() << "/lib" << project->GetName() << ".a";
+	}
 	if (project->GetArchitecture() == "64-bit")
 		out << " -m64";
 	out << " " << objects << " -o ./" << GetTargetFile();

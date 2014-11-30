@@ -392,9 +392,7 @@ std::string Project::GetExecutableFile() const
 
 std::string Project::GetUnitTestFile() const
 {
-	auto file = GetExecutableFile();
-	file.insert(file.rfind('.'), ".Test");
-	return file;
+	return GetName() + ".Test.exe";
 }
 
 std::string Project::GetRelativeFileName(const std::string& fileName) const
