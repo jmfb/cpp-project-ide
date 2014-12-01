@@ -71,6 +71,11 @@ bool ProjectSettingsDialog::OnInitDialog(LPARAM param)
 		libraries << library << std::endl;
 	SetDlgItemText(IDC_EDIT_LIBRARIES, STRING::replace(libraries.str(), "\n", "\r\n"));
 
+	std::ostringstream projectReferences;
+	for (const auto& projectReference : project->GetProjectReferences())
+		projectReferences << projectReference << std::endl;
+	SetDlgItemText(IDC_EDIT_PROJECT_REFERENCES, STRING::replace(projectReferences.str(), "\n", "\r\n"));
+
 	return true;
 }
 
@@ -140,6 +145,17 @@ void ProjectSettingsDialog::OnCommand(WORD code, WORD id, HWND hwnd)
 						libraries.push_back(library);
 				}
 				project->SetLibraries(libraries);
+
+				std::vector<std::string> projectReferences;
+				std::istringstream inProjectReferences(GetDlgItemText(IDC_EDIT_PROJECT_REFERENCES));
+				std::string projectReference;
+				while (std::getline(inProjectReferences, projectReference))
+				{
+					projectReference = STRING::trim(projectReference);
+					if (!projectReference.empty())
+						projectReferences.push_back(projectReference);
+				}
+				project->SetProjectReferences(projectReferences);
 
 				End(id);
 			}

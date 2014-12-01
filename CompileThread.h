@@ -38,9 +38,30 @@ public:
 	void Run() override;
 
 private:
-	void PrepareForLink() const;
+	void PrepareForLink();
+	void ValidateProjectReferences();
+	void ValidateProjectReference(const std::string& projectReference);
+	void DeleteTargetFile() const;
 	std::string GetLinkingCommand() const;
 	std::string GetTargetFile() const;
+
+	template <typename ValueType>
+	void ValidateProjectSetting(
+		const Project& reference,
+		ValueType (Project::*setting)() const,
+		const std::string& settingName) const
+	{
+		auto thisValue = (project->*setting)();
+		auto referenceValue = (reference.*setting)();
+		if (thisValue != referenceValue)
+		{
+			std::ostringstream out;
+			out << "Project reference " << settingName << " mismatch." << std::endl
+				<< project->GetName() << " = " << thisValue << std::endl
+				<< reference.GetName() << " = " << referenceValue << std::endl;
+			throw std::runtime_error{ out.str() };
+		}
+	}
 
 private:
 	std::atomic<bool> done;
@@ -52,6 +73,7 @@ private:
 	const Project* project = nullptr;
 	std::string objects;
 	bool unitTest = false;
+	std::vector<std::string> referencedLibraries;
 };
 
 typedef std::shared_ptr<CompileThread> CompileThreadPtr;

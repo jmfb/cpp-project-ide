@@ -50,6 +50,7 @@ public:
 	const std::string& GetOutputFileName() const;
 	const std::list<std::string>& GetIncludeDirectories() const;
 	const std::list<std::string>& GetLibraries() const;
+	const std::vector<std::string>& GetProjectReferences() const;
 
 	void SetDirty();
 	void SetName(const std::string& value);
@@ -66,7 +67,9 @@ public:
 	void SetOutputFileName(const std::string& value);
 	void SetIncludeDirectories(const std::list<std::string>& value);
 	void SetLibraries(const std::list<std::string>& value);
+	void SetProjectReferences(const std::vector<std::string>& value);
 
+	std::string GetOutputPath() const;
 	std::string GetTargetFile() const;
 	std::string GetTargetUnitTestFile() const;
 	std::string GetExecutableFile() const;
@@ -96,6 +99,7 @@ private:
 	std::string outputFileName;
 	std::list<std::string> includeDirectories;
 	std::list<std::string> libraries;
+	std::vector<std::string> projectReferences;
 	ProjectItemFolder rootFolder;
 };
 

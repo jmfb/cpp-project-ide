@@ -64,13 +64,14 @@ void CompileThread::Run()
 			return;
 		}
 
+		if (linking)
+			PrepareForLink();
+
 		auto command = linking ? GetLinkingCommand() : settings.GetCompileCommand();
 		events->ProcessMessage(id, command);
 
 		//Prepare for the compile
-		if (linking)
-			PrepareForLink();
-		else
+		if (!linking)
 			settings.PrepareForCompile("o");
 
 		Process process;
@@ -121,7 +122,67 @@ void CompileThread::Run()
 	done = true;
 }
 
-void CompileThread::PrepareForLink() const
+void CompileThread::PrepareForLink()
+{
+	ValidateProjectReferences();
+	DeleteTargetFile();
+}
+
+void CompileThread::ValidateProjectReferences()
+{
+	for (const auto& projectReference : project->GetProjectReferences())
+		ValidateProjectReference(projectReference);
+}
+
+void CompileThread::ValidateProjectReference(const std::string& projectReference)
+{
+	for (const auto& directory : project->GetIncludeDirectories())
+	{
+		auto fullPath = FSYS::FormatPath(directory, projectReference);
+		fullPath = STRING::replace(fullPath, "/", "\\");
+		if (!FSYS::FileExists(fullPath))
+			continue;
+
+		Project reference;
+		reference.Open(fullPath);
+		if (std::find(referencedLibraries.begin(), referencedLibraries.end(), reference.GetName()) != referencedLibraries.end())
+			return;
+
+		referencedLibraries.push_back(reference.GetName());
+		for (const auto& nestedProjectReference : reference.GetProjectReferences())
+			ValidateProjectReference(nestedProjectReference);
+
+		ValidateProjectSetting(reference, &Project::GetStandard, "Standard");
+		ValidateProjectSetting(reference, &Project::GetArchitecture, "Architecture");
+		ValidateProjectSetting(reference, &Project::GetDebugInfo, "DebugInfo");
+		ValidateProjectSetting(reference, &Project::GetMultithreaded, "Multithreaded");
+
+		if (reference.GetTarget() != "DLL")
+			throw std::runtime_error{ projectReference + " target was not DLL." };
+
+		auto dllPath = reference.GetTargetFile();
+		if (!FSYS::FileExists(dllPath))
+			throw std::runtime_error{ projectReference + " target file does not exist: " + dllPath };
+		auto libPath = FSYS::FormatPath(FSYS::GetFilePath(dllPath), "lib" + reference.GetName() + ".a");
+		if (!FSYS::FileExists(libPath))
+			throw std::runtime_error{ projectReference + " library file does not exist: " + libPath };
+
+		auto result = ::CopyFile(
+			dllPath.c_str(),
+			FSYS::FormatPath(project->GetOutputPath(), FSYS::GetFileName(dllPath)).c_str(),
+			FALSE);
+		ERR::CheckWindowsError(!result, __FUNCTION__, "CopyFile(DLL)");
+		result = ::CopyFile(
+			libPath.c_str(),
+			FSYS::FormatPath(project->GetOutputPath(), FSYS::GetFileName(libPath)).c_str(),
+			FALSE);
+		ERR::CheckWindowsError(!result, __FUNCTION__, "CopyFile(LIB)");
+		return;
+	}
+	throw std::runtime_error{ "Could not find project reference: " + projectReference };
+}
+
+void CompileThread::DeleteTargetFile() const
 {
 	auto targetFile = FSYS::FormatPath(
 		FSYS::GetFilePath(project->GetFileName()),
@@ -154,6 +215,12 @@ std::string CompileThread::GetLinkingCommand() const
 	out << " -Xlinker --subsystem -Xlinker " << (unitTest ? std::string("console") : project->GetSubsystem());
 	for (const auto& library: project->GetLibraries())
 		out << " -l" << library;
+	if (!referencedLibraries.empty())
+	{
+		out << " -L./" << project->GetOutputFolder();
+		for (const auto& referencedLibrary : referencedLibraries)
+			out << " -l" << referencedLibrary;
+	}
 	return out.str();
 }
 

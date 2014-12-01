@@ -61,6 +61,7 @@ void Project::New(const std::string& directory, const std::string& name)
 	outputFileName = defaultOutputFileName;
 	includeDirectories.clear();
 	libraries.clear();
+	projectReferences.clear();
 }
 
 void Project::Open(const std::string& fileName)
@@ -114,6 +115,12 @@ void Project::Open(const std::string& fileName)
 	if (librariesNode)
 		for (auto node = librariesNode->first_node("Library"); node; node = node->next_sibling("Library"))
 			libraries.push_back(node->value());
+
+	auto projectReferencesNode = settings ? settings->first_node("ProjectReferences") : nullptr;
+	projectReferences.clear();
+	if (projectReferencesNode)
+		for (auto node = projectReferencesNode->first_node("ProjectReference"); node; node = node->next_sibling("ProjectReference"))
+			projectReferences.push_back(node->value());
 
 	auto files = project->first_node("Files");
 	rootFolder.Clear();
@@ -186,6 +193,11 @@ void Project::Save(const std::string& fileName)
 	settings->append_node(librariesNode);
 	for (const auto& library: libraries)
 		librariesNode->append_node(document.allocate_node(rapidxml::node_element, "Library", library.c_str()));
+
+	auto projectReferencesNode = document.allocate_node(rapidxml::node_element, "ProjectReferences");
+	settings->append_node(projectReferencesNode);
+	for (const auto& projectReference : projectReferences)
+		projectReferencesNode->append_node(document.allocate_node(rapidxml::node_element, "ProjectReference", projectReference.c_str()));
 
 	auto files = document.allocate_node(rapidxml::node_element, "Files");
 	project->append_node(files);
@@ -286,6 +298,11 @@ const std::list<std::string>& Project::GetLibraries() const
 	return libraries;
 }
 
+const std::vector<std::string>& Project::GetProjectReferences() const
+{
+	return projectReferences;
+}
+
 void Project::SetDirty()
 {
 	isDirty = true;
@@ -375,14 +392,25 @@ void Project::SetLibraries(const std::list<std::string>& value)
 	libraries = value;
 }
 
+void Project::SetProjectReferences(const std::vector<std::string>& value)
+{
+	isDirty = true;
+	projectReferences = value;
+}
+
+std::string Project::GetOutputPath() const
+{
+	return FSYS::FormatPath(FSYS::GetFilePath(fileName), outputFolder);
+}
+
 std::string Project::GetTargetFile() const
 {
-	return FSYS::FormatPath(FSYS::FormatPath(FSYS::GetFilePath(fileName), outputFolder), GetExecutableFile());
+	return FSYS::FormatPath(GetOutputPath(), GetExecutableFile());
 }
 
 std::string Project::GetTargetUnitTestFile() const
 {
-	return FSYS::FormatPath(FSYS::FormatPath(FSYS::GetFilePath(fileName), outputFolder), GetUnitTestFile());
+	return FSYS::FormatPath(GetOutputPath(), GetUnitTestFile());
 }
 
 std::string Project::GetExecutableFile() const
